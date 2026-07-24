@@ -18,7 +18,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { loginAdmin } from "@/lib/admin-actions";
+import { loginAdmin, checkAuthSession } from "@/lib/admin-actions";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -55,26 +55,25 @@ export default function LoginPage() {
       }
 
       try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const metaRole = session.user?.user_metadata?.role;
-          if (metaRole === "buyer") {
+        const profile = await checkAuthSession();
+        if (profile && !(profile as any).isSuspended && profile.status !== "suspended") {
+          const role = profile.role;
+          if (role === "buyer") {
             window.location.href = "/";
             return;
-          } else if (metaRole === "seller") {
+          } else if (role === "seller") {
             window.location.href = "/seller/dashboard";
             return;
-          } else if (metaRole === "inspection_manager") {
+          } else if (role === "inspection_manager") {
             window.location.href = "/admin/inspections";
             return;
-          } else {
+          } else if (["admin", "content_manager"].includes(role)) {
             window.location.href = "/admin/dashboard";
             return;
           }
         }
       } catch {
-        // Continue to login page
+        // Continue to login page UI
       }
       setChecking(false);
     }

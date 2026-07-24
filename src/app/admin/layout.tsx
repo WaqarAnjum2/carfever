@@ -76,18 +76,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (pathname === "/admin/login" || pathname === "/login") return;
 
-    // Show manual fallback button after 2.5s if still verifying
-    const btnTimer = setTimeout(() => setShowDelayedBtn(true), 2500);
-
-    // Hard 7s safety timeout to prevent getting stuck indefinitely
-    const safetyTimeout = setTimeout(() => {
-      if (!isAuthenticated) {
-        window.location.href = "/login";
-      }
-    }, 7000);
-
     if (sessionCheckedRef.current) return;
     sessionCheckedRef.current = true;
+
+    // Show manual fallback button after 3s if still verifying
+    const btnTimer = setTimeout(() => setShowDelayedBtn(true), 3000);
 
     async function initAdmin() {
       try {
@@ -104,6 +97,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           return;
         }
 
+        const ADMIN_ALLOWED_ROLES = ['admin', 'content_manager', 'inspection_manager'];
+        if (!ADMIN_ALLOWED_ROLES.includes(res.profile.role)) {
+          if (res.profile.role === 'seller') {
+            window.location.href = '/seller/dashboard';
+          } else {
+            window.location.href = '/';
+          }
+          return;
+        }
+
         setAdminUser(res.profile);
         setIsAuthenticated(true);
         setNewRegistrationsCount(res.pendingRegistrations);
@@ -114,6 +117,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         } else {
           window.location.href = "/login";
         }
+      } finally {
+        clearTimeout(btnTimer);
       }
     }
 
@@ -121,7 +126,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return () => {
       clearTimeout(btnTimer);
-      clearTimeout(safetyTimeout);
     };
   }, [pathname]);
 

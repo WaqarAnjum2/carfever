@@ -51,18 +51,11 @@ export default function SellerLayout({
   const sessionCheckedRef = useRef(false);
 
   useEffect(() => {
-    // Show manual fallback button after 2.5s if still verifying
-    const btnTimer = setTimeout(() => setShowDelayedBtn(true), 2500);
-
-    // Hard 7s safety timeout to prevent getting stuck indefinitely
-    const safetyTimeout = setTimeout(() => {
-      if (!isAuthenticated) {
-        window.location.href = "/login";
-      }
-    }, 7000);
-
     if (sessionCheckedRef.current) return;
     sessionCheckedRef.current = true;
+
+    // Show manual fallback button after 3s if still verifying
+    const btnTimer = setTimeout(() => setShowDelayedBtn(true), 3000);
 
     async function initSeller() {
       try {
@@ -93,6 +86,8 @@ export default function SellerLayout({
         } else {
           window.location.href = "/login";
         }
+      } finally {
+        clearTimeout(btnTimer);
       }
     }
 
@@ -100,7 +95,6 @@ export default function SellerLayout({
 
     return () => {
       clearTimeout(btnTimer);
-      clearTimeout(safetyTimeout);
     };
   }, []);
 

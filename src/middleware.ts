@@ -43,7 +43,6 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, {
               ...options,
-              httpOnly: true,
               secure: isProduction,
               sameSite: 'lax',
               path: '/',
@@ -67,11 +66,27 @@ export async function middleware(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: dbUser } = await serviceClient
+  let { data: dbUser } = await serviceClient
     .from('users')
     .select('role')
     .eq('auth_user_id', user.id)
     .maybeSingle();
+
+  if (!dbUser && user.email) {
+    const { data: byEmail } = await serviceClient
+      .from('users')
+      .select('role')
+      .ilike('email', user.email.trim())
+      .maybeSingle();
+    if (byEmail) {
+      dbUser = byEmail;
+      serviceClient
+        .from('users')
+        .update({ auth_user_id: user.id })
+        .ilike('email', user.email.trim())
+        .then(() => {});
+    }
+  }
 
   const role = dbUser?.role || user.user_metadata?.role || 'buyer';
 

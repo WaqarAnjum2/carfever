@@ -954,6 +954,15 @@ export const getAdminProfile = cache(async () => {
   }
 });
 
+export async function checkAuthSession() {
+  try {
+    return await getAdminProfile();
+  } catch (err) {
+    console.error('checkAuthSession error:', err);
+    return null;
+  }
+}
+
 export async function getAdminInitialData() {
   try {
     const profile = await getAdminProfile();
