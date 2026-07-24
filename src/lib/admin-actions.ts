@@ -911,7 +911,7 @@ export async function fetchAdminCars(search?: string, page: number = 1, pageSize
 
   let query = supabase
     .from('cars')
-    .select('id, title, model, year, price, status, images, created_at', { count: 'exact' })
+    .select('id, title, make, brand, model, year, price, currency, status, images, city, created_at, seller_id, user_id', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range((safePage - 1) * safePageSize, safePage * safePageSize - 1);
 
@@ -931,6 +931,50 @@ export async function fetchAdminCars(search?: string, page: number = 1, pageSize
   const totalPages = Math.ceil(total / safePageSize);
   return { data: formattedData, total, page: safePage, pageSize: safePageSize, totalPages };
 }
+
+// ── SELLER-SCOPED: only returns cars for the currently logged-in dealer ──────
+export async function fetchSellerCars(search?: string, page: number = 1, pageSize: number = 15) {
+  const session = await getSession();
+  if (!session) throw new Error('Authentication required');
+  if (session.status === 'suspended') throw new Error('Your account has been suspended.');
+
+  const supabase = createServiceRoleClient();
+  const safePage = Math.max(1, page);
+  const safePageSize = Math.min(Math.max(1, pageSize), 100);
+
+  // Build OR filter: match seller_id OR user_id (auth_user_id)
+  let orFilter = `seller_id.eq.${session.id}`;
+  if (session.auth_user_id && session.auth_user_id !== session.id) {
+    orFilter += `,user_id.eq.${session.auth_user_id}`;
+  }
+  // Also match seller_id by auth_user_id in case it was stored that way
+  orFilter += `,user_id.eq.${session.id}`;
+
+  let query = supabase
+    .from('cars')
+    .select('id, title, make, brand, model, year, price, currency, status, images, city, created_at, seller_id, user_id', { count: 'exact' })
+    .or(orFilter)
+    .order('created_at', { ascending: false })
+    .range((safePage - 1) * safePageSize, safePage * safePageSize - 1);
+
+  if (search) {
+    query = query.ilike('title', `%${search}%`);
+  }
+
+  const { data, count, error } = await query;
+  if (error) handleError(error, 'Failed to fetch seller cars');
+
+  const formattedData = (data || []).map((c: any) => ({
+    ...c,
+    make: c.make || c.brand || '',
+  }));
+
+  const total = count ?? 0;
+  const totalPages = Math.ceil(total / safePageSize);
+  return { data: formattedData, total, page: safePage, pageSize: safePageSize, totalPages };
+}
+
+
 
 export async function fetchAdminBlogs(_search?: string, page: number = 1, pageSize: number = 15) {
   await verifyAdminSession();

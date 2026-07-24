@@ -44,7 +44,7 @@ export default function EditCarPage() {
     engine: '',
     horsepower: '',
     description: '',
-    status: 'pending',
+    status: 'approved',
     city: '',
     currency: 'PKR',
   });

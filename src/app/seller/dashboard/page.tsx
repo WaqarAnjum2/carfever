@@ -13,7 +13,8 @@ import {
   TrendingUp,
   ChevronRight,
 } from 'lucide-react';
-import { fetchAdminAnalytics, fetchAdminCars, fetchAdminInquiries } from '@/lib/admin-actions';
+import { fetchAdminInquiries, fetchSellerCars } from '@/lib/admin-actions';
+
 
 export default function SellerDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ export default function SellerDashboardPage() {
     async function loadSellerData() {
       try {
         const [carsRes, inquiriesRes] = await Promise.all([
-          fetchAdminCars(undefined, 1, 5).catch(() => ({ data: [], total: 0, page: 1, totalPages: 1 })),
+          fetchSellerCars(undefined, 1, 5).catch(() => ({ data: [], total: 0, page: 1, totalPages: 1 })),
           fetchAdminInquiries().catch(() => []),
         ]);
 

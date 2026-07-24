@@ -246,8 +246,13 @@ export async function submitCarListing(formData: {
     const parsed = CarListingSchema.parse(formData);
     const supabase = createServiceRoleClient();
 
+    // Get the currently logged-in user to tag the listing with seller_id
+    const session = await getSession();
+    const sellerId = session?.id || null;
+    const sellerAuthId = session?.auth_user_id || null;
+
     const numPrice = parseFloat(parsed.price);
-    const pricePKR = numPrice < 10000 ? Math.round(numPrice * 100000) : Math.round(numPrice);
+    const priceGBP = Math.round(numPrice); // Price already in GBP
     const title = `${parsed.year} ${parsed.make} ${parsed.model}`;
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-6);
 
@@ -260,11 +265,11 @@ export async function submitCarListing(formData: {
       brand: parsed.make,
       model: parsed.model,
       year: parseInt(parsed.year),
-      price: pricePKR,
-      currency: 'PKR',
+      price: priceGBP,
+      currency: 'GBP',
       mileage: parsed.mileage ? parseInt(parsed.mileage) : null,
-      engine: parsed.engineCapacity ? `${parsed.engineCapacity} cc` : null,
-      engine_capacity: parsed.engineCapacity ? `${parsed.engineCapacity} cc` : null,
+      engine: parsed.engineCapacity ? `${parsed.engineCapacity}` : null,
+      engine_capacity: parsed.engineCapacity ? `${parsed.engineCapacity}` : null,
       transmission: parsed.transmission.charAt(0).toUpperCase() + parsed.transmission.slice(1),
       fuel_type: parsed.fuelType.charAt(0).toUpperCase() + parsed.fuelType.slice(1),
       body_type: parsed.bodyType || 'Sedan',
@@ -276,9 +281,11 @@ export async function submitCarListing(formData: {
       images: imageUrls,
       image_url: imageUrls[0],
       features: parsed.features || [],
-      status: 'pending',
+      status: 'approved',
       seller_name: parsed.sellerName || null,
       seller_phone: parsed.sellerPhone || null,
+      seller_id: sellerId,
+      user_id: sellerAuthId,
     };
 
     let { data, error } = await supabase
@@ -304,6 +311,10 @@ export async function submitCarListing(formData: {
         delete insertPayload.brand;
       } else if (error.message.includes('make')) {
         delete insertPayload.make;
+      } else if (error.message.includes('user_id')) {
+        delete insertPayload.user_id;
+      } else if (error.message.includes('seller_id')) {
+        delete insertPayload.seller_id;
       } else {
         break;
       }
@@ -319,6 +330,7 @@ export async function submitCarListing(formData: {
     }
 
     revalidatePath('/admin/cars');
+    revalidatePath('/seller/cars');
     revalidatePath('/buy-car');
 
     return { success: true, carId: data?.id || '' };

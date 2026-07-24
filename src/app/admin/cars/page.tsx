@@ -28,7 +28,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { fetchAdminCars, deleteCar, approveCar, rejectCar } from '@/lib/admin-actions';
+import { fetchAdminCars, fetchSellerCars, deleteCar, approveCar, rejectCar } from '@/lib/admin-actions';
 
 function formatPricePKR(price?: number): string {
   if (!price || isNaN(price)) return 'PKR 0';
@@ -113,7 +113,9 @@ export default function AdminCarsPage() {
   const fetchCars = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await fetchAdminCars(debounced, page);
+      const result = isSeller
+        ? await fetchSellerCars(debounced, page)
+        : await fetchAdminCars(debounced, page);
       setCars(result.data || []);
       setTotalPages(result.totalPages);
     } catch {
