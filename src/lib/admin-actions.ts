@@ -623,9 +623,27 @@ export async function loginAdmin(email: string, password: string) {
     }
   }
 
+  // Before throwing invalid credentials, check if this user is suspended in public.users
+  // This covers the case where Supabase Auth itself denies login for a disabled user
   if (authError || !authData?.user) {
+    // Re-use or fetch the dbUser to check suspension
+    const { data: suspectUser } = await serviceClient
+      .from('users')
+      .select('id, status')
+      .ilike('email', parsed.email)
+      .maybeSingle();
+
+    if (suspectUser?.status === 'suspended') {
+      return {
+        success: false as const,
+        errorType: 'suspended',
+        error: 'Your account has been blocked. Please contact the administrator for assistance.',
+      };
+    }
+
     throw new Error('Invalid email or password.');
   }
+
 
   // 3. Fetch exact user profile for the authenticated user
   let { data: userData } = await serviceClient
