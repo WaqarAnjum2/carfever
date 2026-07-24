@@ -888,8 +888,9 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
                 {formatPricePKR(car.price)}
               </p>
               <p className="text-xs font-bold text-slate-500">
-                PKR {car.price?.toLocaleString()}
+                £{car.price?.toLocaleString('en-GB')} GBP
               </p>
+
             </div>
           </div>
 
@@ -1158,27 +1159,27 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
               )}
             </div>
 
-            {/* Right Column: Full Owner / Seller Information Card */}
+            {/* Right Column: Full Dealer Information & Posting Details Card */}
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <User className="w-5 h-5 text-[#0055FE]" />
                   <h3 className="text-sm font-black text-slate-900 tracking-tight">
-                    Vehicle Owner / Seller Information
+                    Dealer Information & Posting Details
                   </h3>
                 </div>
 
                 <div className="space-y-3 text-xs font-semibold">
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Seller Name</span>
+                  <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-100">
+                    <span className="text-[10px] font-bold text-purple-600 uppercase block">Dealer Name</span>
                     <span className="font-extrabold text-slate-900 text-sm mt-0.5 block">
-                      {car.seller_name || sellerProfile?.name || 'Individual Seller'}
+                      {car.seller_name || sellerProfile?.name || 'Verified Dealer'}
                     </span>
                   </div>
 
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-slate-400" /> Phone Number
+                      <Phone className="w-3 h-3 text-[#0055FE]" /> Contact Number
                     </span>
                     <span className="font-extrabold text-slate-900 mt-0.5 block">
                       {car.seller_phone || sellerProfile?.phone || 'Not specified'}
@@ -1187,42 +1188,50 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
 
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-slate-400" /> Email Address
+                      <Mail className="w-3 h-3 text-[#0055FE]" /> Email Address
                     </span>
                     <span className="font-extrabold text-slate-900 mt-0.5 block break-all">
                       {sellerProfile?.email || car.seller_email || 'Not specified'}
                     </span>
                   </div>
 
-                  {sellerProfile?.role && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Account Role</span>
-                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-extrabold border border-purple-200">
-                        {sellerProfile.role.toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-[#0055FE]" /> Location / City
+                    </span>
+                    <span className="font-extrabold text-slate-900 mt-0.5 block">
+                      {car.city || sellerProfile?.city || 'United Kingdom'}
+                    </span>
+                  </div>
 
-                  {car.seller_id && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Account Role</span>
+                    <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-extrabold border border-purple-200">
+                      {sellerProfile?.role === 'seller' ? 'VERIFIED DEALER' : (sellerProfile?.role?.toUpperCase() || 'DEALER')}
+                    </span>
+                  </div>
+
+                  {(car.seller_id || sellerProfile?.id) && (
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Seller Account ID</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Dealer Account ID</span>
                       <span className="font-mono text-[10px] text-slate-600 block mt-0.5 break-all">
-                        {car.seller_id}
+                        {car.seller_id || sellerProfile?.id}
                       </span>
                     </div>
                   )}
 
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-slate-400" /> Listing Created Date
+                      <Clock className="w-3 h-3 text-[#0055FE]" /> Date & Time Posted
                     </span>
                     <span className="font-extrabold text-slate-900 mt-0.5 block">
-                      {car.created_at ? new Date(car.created_at).toLocaleString() : 'N/A'}
+                      {car.created_at ? new Date(car.created_at).toLocaleString('en-GB', { dateStyle: 'full', timeStyle: 'short' }) : 'N/A'}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         </>
       )}
