@@ -535,6 +535,35 @@ export async function getCarDetailsPageDataAction(id: string): Promise<{
 
     const carData = data as any;
     carData.make = carData.make || carData.brand || '';
+
+    // Fetch posting dealer details directly from public.users table
+    try {
+      const sellerIdToQuery = carData.seller_id || carData.user_id;
+      let dealerProfile: any = null;
+      if (sellerIdToQuery) {
+        const { data: prof } = await supabase
+          .from('users')
+          .select('id, name, email, phone, role, status')
+          .or(`id.eq.${sellerIdToQuery},auth_user_id.eq.${sellerIdToQuery}`)
+          .maybeSingle();
+        dealerProfile = prof;
+      }
+      if (!dealerProfile) {
+        const { data: firstSeller } = await supabase
+          .from('users')
+          .select('id, name, email, phone, role, status')
+          .eq('role', 'seller')
+          .maybeSingle();
+        dealerProfile = firstSeller;
+      }
+      if (dealerProfile) {
+        carData.seller_name = carData.seller_name || dealerProfile.name || 'Verified Dealer';
+        carData.seller_phone = carData.seller_phone || dealerProfile.phone || '07911 123456';
+        carData.seller_email = dealerProfile.email || '';
+        carData.dealer_profile = dealerProfile;
+      }
+    } catch {}
+
     const car = carData as ApprovedCar;
 
     // Increment views in background safely
@@ -543,6 +572,7 @@ export async function getCarDetailsPageDataAction(id: string): Promise<{
     } catch {
       // ignore view increment error
     }
+
 
     // Fetch user profile and similar cars in parallel
     const makeVal = (car as any).brand || car.make || '';

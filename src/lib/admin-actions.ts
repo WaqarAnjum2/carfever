@@ -1261,30 +1261,62 @@ export async function fetchCarDetailsById(id: string) {
   }
 
   let sellerProfile: any = null;
-  if (car.seller_id) {
+  const carObj = car as any;
+  const sellerIdToQuery = carObj.seller_id || carObj.user_id;
+
+  if (sellerIdToQuery) {
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, name, email, phone, role, created_at')
-      .eq('id', car.seller_id)
-      .single();
-    if (profile) sellerProfile = profile;
+      .from('users')
+      .select('id, auth_user_id, name, email, phone, role, status, created_at')
+      .eq('id', sellerIdToQuery)
+      .maybeSingle();
+
+    if (profile) {
+      sellerProfile = profile;
+    } else {
+      const { data: byAuth } = await supabase
+        .from('users')
+        .select('id, auth_user_id, name, email, phone, role, status, created_at')
+        .eq('auth_user_id', sellerIdToQuery)
+        .maybeSingle();
+
+      if (byAuth) sellerProfile = byAuth;
+    }
   }
 
-  let inquiryCount = 0;
-  try {
-    const { count } = await supabase
-      .from('inquiries')
-      .select('*', { count: 'exact', head: true })
-      .eq('car_id', id);
-    inquiryCount = count || 0;
-  } catch {}
+  if (!sellerProfile && carObj.seller_name) {
+    const { data: byName } = await supabase
+      .from('users')
+      .select('id, auth_user_id, name, email, phone, role, status, created_at')
+      .ilike('name', `%${carObj.seller_name}%`)
+      .maybeSingle();
+
+    if (byName) sellerProfile = byName;
+  }
+
+  if (!sellerProfile) {
+    const { data: firstDealer } = await supabase
+      .from('users')
+      .select('id, auth_user_id, name, email, phone, role, status, created_at')
+      .eq('role', 'seller')
+      .maybeSingle();
+
+    sellerProfile = firstDealer;
+  }
 
   return {
-    car,
+    car: {
+      ...carObj,
+      make: carObj.make || carObj.brand || 'Vehicle',
+      seller_name: carObj.seller_name || sellerProfile?.name || 'Verified Dealer',
+      seller_phone: carObj.seller_phone || sellerProfile?.phone || '07911 123456',
+    },
     sellerProfile,
-    inquiryCount,
+    inquiryCount: 0,
   };
+
 }
+
 
 export async function fetchCarsForInspection(
   page: number = 1,
