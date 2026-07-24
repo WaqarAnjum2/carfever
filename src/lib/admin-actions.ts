@@ -584,92 +584,138 @@ export async function saveSiteSettings(
 // AUTH
 // ============================================================================
 
-export async function loginAdmin(email: string, password: string) {
+export async function loginAdmin(emailInput: string, passwordInput: string) {
   const ip = await getClientIp();
   const { allowed } = rateLimit('login', ip);
-  if (!allowed) throw new Error('Too many login attempts. Please wait before trying again.');
+  if (!allowed) {
+    return {
+      success: false as const,
+      errorType: 'rate_limited',
+      error: 'Too many login attempts. Please wait a moment before trying again.',
+    };
+  }
 
-  const parsed = AdminLoginSchema.parse({ email: email.toLowerCase().trim(), password });
+  const cleanEmail = (emailInput || '').toLowerCase().trim();
+  if (!cleanEmail || !passwordInput) {
+    return {
+      success: false as const,
+      errorType: 'invalid_format',
+      error: 'Please provide both email address and password.',
+    };
+  }
 
   const supabase = await createServerClient();
   const serviceClient = createServiceRoleClient();
 
-  // 1. Attempt login with provided email
+  // 1. Fetch user profile from DB to verify account existence & status first
+  const { data: dbUser } = await serviceClient
+    .from('users')
+    .select('id, auth_user_id, email, name, role, status')
+    .ilike('email', cleanEmail)
+    .maybeSingle();
+
+  // 2. Check registration requests if not found in active users
+  let pendingReq: any = null;
+  if (!dbUser) {
+    const { data: reqData } = await serviceClient
+      .from('registration_requests')
+      .select('id, status, role')
+      .ilike('email', cleanEmail)
+      .maybeSingle();
+    pendingReq = reqData;
+  }
+
+  // 3. Verify if Auth user object exists in Supabase Auth
+  let authUserObj: any = null;
+  if (dbUser?.auth_user_id) {
+    const { data: authRes } = await serviceClient.auth.admin.getUserById(dbUser.auth_user_id);
+    if (authRes?.user) authUserObj = authRes.user;
+  }
+
+  if (!authUserObj) {
+    try {
+      const { data: listRes } = await serviceClient.auth.admin.listUsers();
+      const found = listRes?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
+      if (found) authUserObj = found;
+    } catch {}
+  }
+
+  // ── SCENARIO A: ACCOUNT DOES NOT EXIST AT ALL ──
+  if (!dbUser && !authUserObj) {
+    if (pendingReq?.status === 'pending') {
+      return {
+        success: false as const,
+        errorType: 'pending_approval',
+        error: 'PENDING: Your registration application is currently under admin review. You will gain access once approved.',
+      };
+    }
+    if (pendingReq?.status === 'rejected') {
+      return {
+        success: false as const,
+        errorType: 'rejected',
+        error: 'REJECTED: Your registration request was rejected by administration.',
+      };
+    }
+    return {
+      success: false as const,
+      errorType: 'not_found',
+      error: 'NO_ACCOUNT: No account was found matching this email address. Please check your spelling or register a new account.',
+    };
+  }
+
+  // ── SCENARIO B: ACCOUNT EXISTS BUT IS BLOCKED / SUSPENDED ──
+  if (dbUser?.status === 'suspended') {
+    try { await supabase.auth.signOut(); } catch {}
+    return {
+      success: false as const,
+      errorType: 'suspended',
+      error: 'BLOCKED: Your account has been blocked by an administrator. Please contact support for assistance.',
+    };
+  }
+
+  // ── SCENARIO C: ATTEMPT PASSWORD LOGIN ──
+  const emailToUse = authUserObj?.email || dbUser?.email || cleanEmail;
   let { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email: parsed.email,
-    password: parsed.password,
+    email: emailToUse,
+    password: passwordInput,
   });
 
-  // 2. If login failed by email, check if user exists in public.users DB under another case or linked Auth user
+  // Retry with alternative email casing if needed
   if (authError || !authData?.user) {
-    const { data: dbUser } = await serviceClient
-      .from('users')
-      .select('id, auth_user_id, email, status')
-      .ilike('email', parsed.email)
-      .maybeSingle();
-
-    if (dbUser && dbUser.auth_user_id) {
-      const { data: authUserObj } = await serviceClient.auth.admin.getUserById(dbUser.auth_user_id);
-      if (authUserObj?.user?.email) {
-        const retry = await supabase.auth.signInWithPassword({
-          email: authUserObj.user.email,
-          password: parsed.password,
-        });
-        if (retry.data?.user) {
-          authData = retry.data;
-          authError = null;
-        }
+    if (authUserObj?.email && authUserObj.email !== emailToUse) {
+      const retry = await supabase.auth.signInWithPassword({
+        email: authUserObj.email,
+        password: passwordInput,
+      });
+      if (retry.data?.user) {
+        authData = retry.data;
+        authError = null;
       }
     }
   }
 
-  // Before throwing invalid credentials, check if this user is suspended in public.users
-  // This covers the case where Supabase Auth itself denies login for a disabled user
+  // ── SCENARIO D: INCORRECT PASSWORD ──
   if (authError || !authData?.user) {
-    // Re-use or fetch the dbUser to check suspension
-    const { data: suspectUser } = await serviceClient
-      .from('users')
-      .select('id, status')
-      .ilike('email', parsed.email)
-      .maybeSingle();
-
-    if (suspectUser?.status === 'suspended') {
-      return {
-        success: false as const,
-        errorType: 'suspended',
-        error: 'Your account has been blocked. Please contact the administrator for assistance.',
-      };
-    }
-
-    throw new Error('Invalid email or password.');
+    return {
+      success: false as const,
+      errorType: 'incorrect_password',
+      error: 'INCORRECT_PASSWORD: The password you entered is incorrect. Please check your password and try again.',
+    };
   }
 
-
-  // 3. Fetch exact user profile for the authenticated user
-  let { data: userData } = await serviceClient
-    .from('users')
-    .select('id, name, email, role, status')
-    .eq('auth_user_id', authData.user.id)
-    .maybeSingle();
-
-  if (!userData && authData.user.email) {
-    const { data: byEmail } = await serviceClient
+  // ── SCENARIO E: PROFILE RETRIEVAL / CREATION AFTER SUCCESSFUL AUTH ──
+  let finalProfile = dbUser;
+  if (!finalProfile) {
+    const { data: profileByAuth } = await serviceClient
       .from('users')
-      .select('id, name, email, role, status')
-      .ilike('email', authData.user.email)
+      .select('id, auth_user_id, name, email, role, status')
+      .eq('auth_user_id', authData.user.id)
       .maybeSingle();
 
-    if (byEmail) {
-      userData = byEmail;
-      await serviceClient
-        .from('users')
-        .update({ auth_user_id: authData.user.id })
-        .eq('id', byEmail.id);
-    }
+    finalProfile = profileByAuth;
   }
 
-  if (!userData) {
-    // Create buyer profile if missing
+  if (!finalProfile) {
     const { data: newProfile } = await serviceClient
       .from('users')
       .upsert({
@@ -679,31 +725,28 @@ export async function loginAdmin(email: string, password: string) {
         role: authData.user.user_metadata?.role || 'buyer',
         status: 'active'
       }, { onConflict: 'auth_user_id' })
-      .select('id, name, email, role, status')
+      .select('id, auth_user_id, name, email, role, status')
       .single();
 
-    userData = newProfile;
+    finalProfile = newProfile;
   }
 
-  if (!userData) {
-    await supabase.auth.signOut();
-    return { success: false as const, errorType: 'no_profile', error: 'User account profile could not be retrieved.' };
-  }
 
-  // 4. Strict Block / Suspension Enforcement
-  if (userData.status === 'suspended') {
-    await supabase.auth.signOut();
+  // Double check suspension status after profile load
+  if (finalProfile?.status === 'suspended') {
+    try { await supabase.auth.signOut(); } catch {}
     return {
       success: false as const,
       errorType: 'suspended',
-      error: 'Your account has been blocked. Please contact the administrator for assistance.',
+      error: 'BLOCKED: Your account has been blocked by an administrator. Please contact support for assistance.',
     };
   }
 
   revalidatePath('/admin', 'layout');
   revalidatePath('/admin/dashboard');
-  return { success: true as const, user: userData };
+  return { success: true as const, user: finalProfile };
 }
+
 
 export async function logoutAdmin(): Promise<{ success: boolean }> {
   try {

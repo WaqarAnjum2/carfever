@@ -15,9 +15,14 @@ import {
   TrendingUp,
   ChevronLeft,
   UserPlus,
+  UserX,
+  Clock,
+  KeyRound,
+  XCircle,
   Eye,
   EyeOff,
 } from "lucide-react";
+
 import { loginAdmin, checkAuthSession } from "@/lib/admin-actions";
 import { createClient } from "@/lib/supabase/client";
 
@@ -242,7 +247,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Error / Blocked Banner */}
+          {/* Error / Blocked / No Account / Incorrect Password Banner */}
           {error && (
             error.startsWith("BLOCKED:") ? (
               <div className="flex items-start gap-3 bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -255,6 +260,55 @@ export default function LoginPage() {
                   <p className="text-[11px] text-rose-500 mt-1">Contact us at <span className="font-bold">support@carfever.co.uk</span></p>
                 </div>
               </div>
+            ) : error.startsWith("NO_ACCOUNT:") ? (
+              <div className="flex items-start gap-3 bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                  <UserX className="w-4 h-4 text-amber-700" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-amber-800 uppercase tracking-wider mb-0.5">Account Not Found</p>
+                  <p className="text-xs text-amber-700 font-medium">{error.replace("NO_ACCOUNT: ", "")}</p>
+                  <div className="mt-2.5">
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Register New Account</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : error.startsWith("INCORRECT_PASSWORD:") ? (
+              <div className="flex items-start gap-3 bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+                  <KeyRound className="w-4 h-4 text-rose-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-rose-700 uppercase tracking-wider mb-0.5">Incorrect Password</p>
+                  <p className="text-xs text-rose-600 font-medium">{error.replace("INCORRECT_PASSWORD: ", "")}</p>
+                </div>
+              </div>
+            ) : error.startsWith("PENDING:") ? (
+              <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-[#0055FE]" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-[#0055FE] uppercase tracking-wider mb-0.5">Application Pending Review</p>
+                  <p className="text-xs text-blue-700 font-medium">{error.replace("PENDING: ", "")}</p>
+                </div>
+              </div>
+            ) : error.startsWith("REJECTED:") ? (
+              <div className="flex items-start gap-3 bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+                  <XCircle className="w-4 h-4 text-rose-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-rose-700 uppercase tracking-wider mb-0.5">Application Rejected</p>
+                  <p className="text-xs text-rose-600 font-medium">{error.replace("REJECTED: ", "")}</p>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-xs text-rose-700 animate-in fade-in slide-in-from-top-2 duration-200">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -262,6 +316,7 @@ export default function LoginPage() {
               </div>
             )
           )}
+
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
