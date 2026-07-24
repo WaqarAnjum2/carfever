@@ -1,3 +1,5 @@
-import InquiriesPage from "@/app/admin/inquiries/page";
+import { redirect } from 'next/navigation';
 
-export default InquiriesPage;
+export default function SellerInquiriesRedirect() {
+  redirect('/seller/dashboard');
+}

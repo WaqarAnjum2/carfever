@@ -27,10 +27,9 @@ interface SellerMenuItem {
 }
 
 const sellerMenuItems: SellerMenuItem[] = [
-  { label: "Seller Dashboard", href: "/seller/dashboard", icon: LayoutDashboard },
-  { label: "My Cars",         href: "/seller/cars",      icon: Car },
-  { label: "List Vehicle",    href: "/seller/sell-car",  icon: Plus },
-  { label: "Inquiries",       href: "/seller/inquiries",   icon: MessageSquare },
+  { label: "Dealer Dashboard", href: "/seller/dashboard", icon: LayoutDashboard },
+  { label: "My Cars",          href: "/seller/cars",      icon: Car },
+  { label: "List Vehicle",     href: "/seller/sell-car",  icon: Plus },
   { label: "Profile Settings", href: "/seller/settings/profile", icon: User },
 ];
 
@@ -116,7 +115,7 @@ export default function SellerLayout({
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="w-10 h-10 rounded-full border-3 border-[#0055FE] border-t-transparent animate-spin" />
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-            Verifying Seller Portal…
+            Verifying Dealer Portal…
           </span>
           {showDelayedBtn && (
             <div className="flex flex-col sm:flex-row gap-2 mt-4">
@@ -170,7 +169,7 @@ export default function SellerLayout({
               Car<span className="text-purple-600">Fever</span>
             </div>
             <div className="text-[10px] font-bold text-purple-600 uppercase tracking-[0.15em] mt-1">
-              Seller Console
+              Dealer Console
             </div>
           </div>
         </div>
@@ -225,11 +224,11 @@ export default function SellerLayout({
         <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-8 h-8 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-700 font-bold text-xs flex-shrink-0">
-              {sellerUser?.name?.[0]?.toUpperCase() || "S"}
+              {sellerUser?.name?.[0]?.toUpperCase() || "D"}
             </div>
             <div className="truncate">
               <div className="text-xs font-bold text-slate-900 truncate">
-                {sellerUser?.name || "Seller User"}
+                {sellerUser?.name || "Dealer Account"}
               </div>
               <div className="text-[10px] text-slate-400 font-medium truncate">
                 {sellerUser?.email}
@@ -263,7 +262,7 @@ export default function SellerLayout({
                 Car<span className="text-purple-600">Fever</span>
               </div>
               <div className="text-[10px] font-bold text-purple-600 uppercase tracking-widest mt-1">
-                Seller Console
+                Dealer Console
               </div>
             </div>
           </div>
@@ -324,7 +323,7 @@ export default function SellerLayout({
 
             <div>
               <div className="text-xs font-semibold text-purple-600">
-                Seller Console / {breadcrumb}
+                Dealer Console / {breadcrumb}
               </div>
               <h1 className="text-lg font-black text-slate-900 tracking-tight capitalize">
                 {breadcrumb}
@@ -348,14 +347,14 @@ export default function SellerLayout({
                 className="flex items-center gap-2 p-1.5 rounded-2xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
-                  {sellerUser?.name?.[0]?.toUpperCase() || "S"}
+                  {sellerUser?.name?.[0]?.toUpperCase() || "D"}
                 </div>
                 <div className="hidden md:block text-left">
                   <div className="text-xs font-bold text-slate-900 leading-none">
-                    {sellerUser?.name || "Seller User"}
+                    {sellerUser?.name || "Dealer Account"}
                   </div>
                   <div className="text-[10px] text-purple-600 font-semibold mt-0.5 capitalize">
-                    {sellerUser?.role || "Seller"}
+                    {sellerUser?.role === "seller" ? "Dealer" : (sellerUser?.role || "Dealer")}
                   </div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -404,3 +403,4 @@ export default function SellerLayout({
     </div>
   );
 }
+

@@ -409,8 +409,9 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs font-bold text-[#0055FE] mb-3">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Seller Portal Car Listing Form</span>
+          <span>Dealer Portal Car Listing Form</span>
         </div>
+
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-2">
           Post a New Vehicle <span className="text-[#0055FE]">Listing</span>
         </h1>
@@ -838,7 +839,7 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-extrabold text-slate-900">Pricing & Seller Contact</h2>
+                  <h2 className="text-lg font-extrabold text-slate-900">Pricing & Dealer Contact</h2>
                   <p className="text-xs text-slate-500">Specify your asking price and contact info</p>
                 </div>
               </div>
@@ -910,35 +911,36 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
                 )}
               </div>
 
-              {/* Seller Name */}
+              {/* Dealer Name */}
               <div>
                 <label className={labelClass}>
-                  <span>Seller's Name</span>
+                  <span>Dealer's Name</span>
                 </label>
                 <input
                   type="text"
                   name="sellerName"
-                  placeholder="e.g. Muhammad Ali"
+                  placeholder="e.g. Apex Performance Motors"
                   value={formData.sellerName}
                   onChange={handleInputChange}
                   className={inputClass}
                 />
               </div>
 
-              {/* Seller Phone */}
+              {/* Dealer Phone */}
               <div>
                 <label className={labelClass}>
-                  <span>Seller's Mobile Phone</span>
+                  <span>Dealer's Mobile Phone</span>
                 </label>
                 <input
                   type="tel"
                   name="sellerPhone"
-                  placeholder="e.g. 03001234567"
+                  placeholder="e.g. 07911 123456"
                   value={formData.sellerPhone}
                   onChange={handleInputChange}
                   className={inputClass}
                 />
               </div>
+
 
               {/* Description */}
               <div className="sm:col-span-2">

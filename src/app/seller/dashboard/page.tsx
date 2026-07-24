@@ -5,52 +5,44 @@ import Link from 'next/link';
 import {
   Car,
   Eye,
-  MessageSquare,
-  ShieldCheck,
+  User,
   Plus,
   ArrowUpRight,
-  Clock,
   TrendingUp,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
-import { fetchAdminInquiries, fetchSellerCars } from '@/lib/admin-actions';
-
+import { fetchSellerCars } from '@/lib/admin-actions';
 
 export default function SellerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     myCars: 0,
     totalViews: 0,
-    totalInquiries: 0,
   });
   const [recentCars, setRecentCars] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadSellerData() {
+    async function loadDealerData() {
       try {
-        const [carsRes, inquiriesRes] = await Promise.all([
-          fetchSellerCars(undefined, 1, 5).catch(() => ({ data: [], total: 0, page: 1, totalPages: 1 })),
-          fetchAdminInquiries().catch(() => []),
-        ]);
-
+        const carsRes = await fetchSellerCars(undefined, 1, 5).catch(() => ({ data: [], total: 0, page: 1, totalPages: 1 }));
         const carsList = (carsRes as any)?.data || [];
         const totalViews = carsList.reduce((acc: number, c: any) => acc + (c.views_count || 0), 0);
 
         setStats({
           myCars: (carsRes as any)?.total || carsList.length || 0,
           totalViews,
-          totalInquiries: Array.isArray(inquiriesRes) ? inquiriesRes.length : 0,
         });
 
         setRecentCars(carsList);
       } catch (err) {
-        console.error('Failed to load seller metrics', err);
+        console.error('Failed to load dealer metrics', err);
       } finally {
         setLoading(false);
       }
     }
 
-    loadSellerData();
+    loadDealerData();
   }, []);
 
   if (loading) {
@@ -59,7 +51,7 @@ export default function SellerDashboardPage() {
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-            Loading Seller Dashboard…
+            Loading Dealer Dashboard…
           </span>
         </div>
       </div>
@@ -76,13 +68,13 @@ export default function SellerDashboardPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold mb-3 border border-white/15 text-purple-200">
               <TrendingUp className="w-3.5 h-3.5 text-purple-300" />
-              <span>Seller Performance Hub</span>
+              <span>Dealer Performance Hub</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-              Welcome to Your Seller Portal
+              Welcome to Your Dealer Portal
             </h1>
             <p className="text-sm text-purple-200/90 mt-1 max-w-xl">
-              Track vehicle view metrics, manage active listings, review buyer inquiries, and post new vehicle ads.
+              Track vehicle view metrics, manage active inventory listings, update pricing, and list new cars for sale.
             </p>
           </div>
 
@@ -120,11 +112,11 @@ export default function SellerDashboardPage() {
 
         <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Buyer Inquiries</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{stats.totalInquiries}</h3>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account Status</p>
+            <h3 className="text-2xl font-black text-emerald-600 mt-1">Verified Dealer</h3>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-            <MessageSquare className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <ShieldCheck className="w-6 h-6" />
           </div>
         </div>
       </div>
@@ -168,18 +160,18 @@ export default function SellerDashboardPage() {
         </Link>
 
         <Link
-          href="/seller/inquiries"
+          href="/seller/settings/profile"
           className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-purple-300 hover:shadow-md transition-all group flex items-center justify-between"
         >
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0055FE] flex items-center justify-center">
+              <User className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900 group-hover:text-amber-700 transition-colors">
-                Buyer Messages
+              <h4 className="text-sm font-bold text-slate-900 group-hover:text-[#0055FE] transition-colors">
+                Dealer Settings
               </h4>
-              <p className="text-xs text-slate-400 mt-0.5">Respond to prospective buyers</p>
+              <p className="text-xs text-slate-400 mt-0.5">Manage profile & dealership info</p>
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
@@ -206,7 +198,7 @@ export default function SellerDashboardPage() {
           <div className="p-8 text-center">
             <Car className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-sm font-bold text-slate-700">No vehicle listings yet</p>
-            <p className="text-xs text-slate-400 mt-1 mb-4">Post your first vehicle to reach thousands of buyers across Pakistan.</p>
+            <p className="text-xs text-slate-400 mt-1 mb-4">Post your first vehicle to reach thousands of buyers across the UK.</p>
             <Link
               href="/seller/sell-car"
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20"
@@ -229,7 +221,7 @@ export default function SellerDashboardPage() {
                   <div>
                     <h4 className="text-sm font-bold text-slate-900">{car.title}</h4>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      PKR {Number(car.price || 0).toLocaleString()} &bull; {car.city || 'Pakistan'}
+                      £{Number(car.price || 0).toLocaleString()} &bull; {car.city || 'UK'}
                     </p>
                   </div>
                 </div>
@@ -256,3 +248,4 @@ export default function SellerDashboardPage() {
     </div>
   );
 }
+
