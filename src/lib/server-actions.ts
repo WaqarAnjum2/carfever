@@ -282,11 +282,12 @@ export async function submitCarListing(formData: {
       image_url: imageUrls[0],
       features: parsed.features || [],
       status: 'approved',
-      seller_name: parsed.sellerName || null,
-      seller_phone: parsed.sellerPhone || null,
+      seller_name: parsed.sellerName || session?.name || null,
+      seller_phone: parsed.sellerPhone || session?.phone || null,
       seller_id: sellerId,
-      user_id: sellerAuthId,
+      user_id: sellerAuthId || sellerId,
     };
+
 
     let { data, error } = await supabase
       .from('cars')
