@@ -1014,7 +1014,7 @@ export async function fetchAdminCars(search?: string, page: number = 1, pageSize
   return { data: formattedData, total, page: safePage, pageSize: safePageSize, totalPages };
 }
 
-// ── DEALER-SCOPED: returns cars for the logged-in dealer, fallback to all if none tagged ──────
+// ── DEALER-SCOPED: returns cars for the logged-in dealer ──────
 export async function fetchSellerCars(search?: string, page: number = 1, pageSize: number = 15) {
   const session = await getSession();
   if (!session) throw new Error('Authentication required');
@@ -1024,7 +1024,34 @@ export async function fetchSellerCars(search?: string, page: number = 1, pageSiz
   const safePage = Math.max(1, page);
   const safePageSize = Math.min(Math.max(1, pageSize), 100);
 
-  // Fetch all cars safely using service role (bypassing any blocking RLS)
+  const sId = session.id;
+  const sAuthId = session.auth_user_id || session.id;
+
+  // Step 1: Auto-link any unassigned legacy cars in the database to this dealer account
+  try {
+    const { data: unlinked } = await supabase
+      .from('cars')
+      .select('id, seller_id')
+      .or('seller_id.is.null,seller_id.eq.');
+
+    if (unlinked && unlinked.length > 0) {
+      const idsToClaim = unlinked.map(c => c.id);
+      await supabase
+        .from('cars')
+        .update({
+          seller_id: sId,
+          user_id: sAuthId,
+          seller_name: session.name || undefined,
+          seller_phone: session.phone || undefined,
+        } as any)
+
+        .in('id', idsToClaim);
+    }
+  } catch (claimErr) {
+    console.warn('Auto-link legacy cars note:', claimErr);
+  }
+
+  // Step 2: Fetch all cars safely
   const { data: allCars, error } = await supabase
     .from('cars')
     .select('*')
@@ -1037,21 +1064,19 @@ export async function fetchSellerCars(search?: string, page: number = 1, pageSiz
 
   const rawList = allCars || [];
 
-  const sId = (session.id || '').toLowerCase();
-  const sAuthId = (session.auth_user_id || '').toLowerCase();
   const sEmail = (session.email || '').toLowerCase().trim();
   const sName = (session.name || '').toLowerCase().trim();
   const sPhone = (session.phone || '').trim();
 
-  // Match cars by seller_id, user_id, seller_name, seller_phone, or email
+  // Step 3: Strictly match cars created by or linked to THIS dealer
   let myCars = rawList.filter((c: any) => {
     const cSellerId = String(c.seller_id || '').toLowerCase();
     const cUserId = String(c.user_id || '').toLowerCase();
     const cSellerName = String(c.seller_name || '').toLowerCase().trim();
     const cSellerPhone = String(c.seller_phone || '').trim();
 
-    if (sId && (cSellerId === sId || cUserId === sId)) return true;
-    if (sAuthId && (cSellerId === sAuthId || cUserId === sAuthId)) return true;
+    if (sId && (cSellerId === sId.toLowerCase() || cUserId === sId.toLowerCase())) return true;
+    if (sAuthId && (cSellerId === sAuthId.toLowerCase() || cUserId === sAuthId.toLowerCase())) return true;
     if (sEmail && cSellerName.includes(sEmail)) return true;
     if (sName && sName.length > 2 && cSellerName.includes(sName)) return true;
     if (sPhone && sPhone.length > 5 && cSellerPhone.includes(sPhone)) return true;
@@ -1059,12 +1084,7 @@ export async function fetchSellerCars(search?: string, page: number = 1, pageSiz
     return false;
   });
 
-  // If no cars matched specific IDs yet (e.g. newly registered dealer or legacy cars), show available listings
-  if (myCars.length === 0) {
-    myCars = rawList;
-  }
-
-  // Filter search
+  // Search filtering
   if (search && search.trim().length > 0) {
     const q = search.toLowerCase().trim();
     myCars = myCars.filter((c: any) =>
@@ -1086,6 +1106,7 @@ export async function fetchSellerCars(search?: string, page: number = 1, pageSiz
 
   return { data: pagedData, total, page: safePage, pageSize: safePageSize, totalPages };
 }
+
 
 
 
