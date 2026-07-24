@@ -56,31 +56,55 @@ export async function submitRegistrationRequest(input: {
   try {
     const parsed = RegistrationRequestSchema.parse(input);
     const email = parsed.email.toLowerCase().trim();
+    const phone = parsed.phone && parsed.phone.trim().length > 3 ? parsed.phone.trim() : null;
 
     const supabase = createServiceRoleClient();
 
-    // 1. Check if user already exists
-    const { data: existingUser } = await supabase
+    // 1. Check duplicate EMAIL in users table
+    const { data: existingUserEmail } = await supabase
       .from('users')
-      .select('id')
+      .select('id, email')
       .eq('email', email)
       .maybeSingle();
 
-    if (existingUser) {
+    if (existingUserEmail) {
       return { success: false, error: 'An account with this email address already exists. Please log in.' };
     }
 
-    // 2. Check if a pending registration request already exists
-    const { data: existingReq } = await supabase
+    // 2. Check duplicate EMAIL in registration_requests table
+    const { data: existingReqEmail } = await supabase
       .from('registration_requests')
       .select('id, status')
       .eq('email', email)
-      .eq('status', 'pending')
       .maybeSingle();
 
-    if (existingReq) {
-      return { success: false, error: 'A pending registration request for this email address already exists.' };
+    if (existingReqEmail) {
+      return { success: false, error: 'A registration request or account with this email address already exists.' };
     }
+
+    // 3. Check duplicate PHONE NUMBER in users and registration_requests tables if phone is provided
+    if (phone) {
+      const { data: existingUserPhone } = await supabase
+        .from('users')
+        .select('id, phone')
+        .eq('phone', phone)
+        .maybeSingle();
+
+      if (existingUserPhone) {
+        return { success: false, error: 'An account with this phone number already exists. Please use a different phone number.' };
+      }
+
+      const { data: existingReqPhone } = await supabase
+        .from('registration_requests')
+        .select('id, phone')
+        .eq('phone', phone)
+        .maybeSingle();
+
+      if (existingReqPhone) {
+        return { success: false, error: 'A registration request with this phone number already exists.' };
+      }
+    }
+
 
     // 3. Auto-approve Buyer accounts instantly on creation (no admin approval needed)
     if (parsed.role === 'buyer') {

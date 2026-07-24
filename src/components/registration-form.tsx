@@ -365,7 +365,8 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
                   type="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="+92 300 1234567"
+                  placeholder="e.g. 07911 123456"
+
                   className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0055FE] focus:ring-2 focus:ring-blue-500/10 transition-all"
                 />
               </div>
