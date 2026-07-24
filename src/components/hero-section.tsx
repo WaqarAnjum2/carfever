@@ -84,9 +84,10 @@ export function HeroSection() {
           <Link href="/register/seller">
             <Button size="lg" className="w-full sm:w-auto bg-[#0055FE] hover:bg-blue-700 text-white font-extrabold h-12 px-6 text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-105">
               <Building2 className="w-4 h-4 mr-2" />
-              <span>Register as Seller / Dealer</span>
+              <span>Become a Dealer</span>
             </Button>
           </Link>
+
           <Link href="/register/buyer">
             <Button variant="outline" size="lg" className="w-full sm:w-auto border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold h-12 px-6 text-xs sm:text-sm rounded-xl shadow-xs transition-all">
               <UserPlus className="w-4 h-4 mr-2 text-[#0055FE]" />

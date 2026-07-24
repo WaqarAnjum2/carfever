@@ -35,12 +35,13 @@ export default async function DealersPage({
               Connect with the most trusted luxury car showrooms and authorized dealerships in Pakistan.
             </p>
           </div>
-          <Link href="/become-dealer" className="shrink-0">
+          <Link href="/register/seller" className="shrink-0">
             <button className="h-12 px-6 bg-[#0055FE] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm flex items-center gap-2">
               <Building2 className="w-4 h-4" />
               Become a Dealer
             </button>
           </Link>
+
         </div>
 
         {/* Search & Filter */}

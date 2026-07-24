@@ -179,8 +179,9 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight mb-3">
             {isSeller ? (
-              <>Become a Verified <br /><span className="text-blue-300">Dealership / Seller</span></>
+              <>Become a Verified <br /><span className="text-blue-300">Dealer</span></>
             ) : (
+
               <>Create Your <br /><span className="text-blue-200">Car Buyer Account</span></>
             )}
           </h1>

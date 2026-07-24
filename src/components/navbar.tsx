@@ -465,9 +465,10 @@ export function Navbar() {
                         size="sm"
                         className="bg-[#0055FE] hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm shadow-blue-500/20"
                       >
-                        Become Seller
+                        Become a Dealer
                       </Button>
                     </Link>
+
                   </div>
                 </>
               )}
@@ -559,8 +560,9 @@ export function Navbar() {
                               className="block w-full text-center py-2.5 rounded-xl bg-[#0055FE] text-white hover:bg-blue-700 text-xs font-bold transition-all shadow-md shadow-blue-500/20"
                               onClick={() => setMobileOpen(false)}
                             >
-                              Become a Seller / Dealer
+                              Become a Dealer
                             </Link>
+
                             <Link
                               href="/login"
                               className="block w-full text-center py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all"
