@@ -1419,40 +1419,74 @@ export async function fetchUserDetailWithCars(userId: string) {
   await verifyAdminSession();
   const supabase = createServiceRoleClient();
 
-  const { data: user, error: userError } = await supabase
+  let { data: user } = await supabase
     .from('users')
     .select('*')
     .eq('id', userId)
     .maybeSingle();
 
-  if (userError || !user) {
+  if (!user) {
+    const { data: byAuth } = await supabase
+      .from('users')
+      .select('*')
+      .eq('auth_user_id', userId)
+      .maybeSingle();
+    user = byAuth;
+  }
+
+  if (!user) {
     throw new Error('User account not found');
   }
 
-  let dealer: any = null;
-  if (user.email) {
-    const { data: dealerData } = await supabase
-      .from('dealers')
-      .select('*')
-      .or(`user_id.eq.${user.id},email.ilike.${user.email.trim()}`)
-      .maybeSingle();
-    dealer = dealerData;
+  const { data: allCars, error } = await supabase
+    .from('cars')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('fetchUserDetailWithCars query error:', error.message);
   }
 
-  let carFilter = `seller_id.eq.${user.id},user_id.eq.${user.id}`;
-  if (user.auth_user_id) carFilter += `,user_id.eq.${user.auth_user_id}`;
-  if (dealer?.id) carFilter += `,dealer_id.eq.${dealer.id}`;
+  const rawList = allCars || [];
+  const uId = (user.id || '').toLowerCase();
+  const uAuthId = (user.auth_user_id || '').toLowerCase();
+  const uEmail = (user.email || '').toLowerCase().trim();
+  const uName = (user.name || '').toLowerCase().trim();
+  const uPhone = (user.phone || '').trim();
 
-  const { data: cars } = await supabase
-    .from('cars')
-    .select('id, title, make, brand, model, year, price, mileage, fuel_type, transmission, images, status, views_count, created_at')
-    .or(carFilter)
-    .order('created_at', { ascending: false });
+  let userCars = rawList.filter((c: any) => {
+    const cSellerId = String(c.seller_id || '').toLowerCase();
+    const cUserId = String(c.user_id || '').toLowerCase();
+    const cSellerName = String(c.seller_name || '').toLowerCase().trim();
+    const cSellerPhone = String(c.seller_phone || '').trim();
+
+    if (uId && (cSellerId === uId || cUserId === uId)) return true;
+    if (uAuthId && (cSellerId === uAuthId || cUserId === uAuthId)) return true;
+    if (uEmail && cSellerName.includes(uEmail)) return true;
+    if (uName && uName.length > 2 && cSellerName.includes(uName)) return true;
+    if (uPhone && uPhone.length > 5 && cSellerPhone.includes(uPhone)) return true;
+
+    return false;
+  });
+
+  const formattedCars = userCars.map((c: any) => ({
+    ...c,
+    make: c.make || c.brand || 'Vehicle',
+    brand: c.brand || c.make || 'Vehicle',
+    image_url: Array.isArray(c.images) && c.images[0] ? c.images[0] : (c.image_url || null),
+  }));
 
   return {
     user,
-    dealer,
-    cars: cars || [],
+    dealer: {
+      company_name: user.name,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    },
+    cars: formattedCars,
   };
 }
+
 

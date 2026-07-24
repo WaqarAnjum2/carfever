@@ -258,77 +258,83 @@ function ProfileModal({
           </button>
         </div>
 
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto">
           {loading ? (
             <div className="py-12 text-center text-slate-400">
               <Loader2 className="w-7 h-7 animate-spin text-[#0055FE] mx-auto mb-2" />
-              <p className="text-xs font-semibold">Loading user details & vehicle catalog…</p>
+              <p className="text-xs font-semibold">Loading dealer profile & vehicle catalog…</p>
             </div>
           ) : activeTab === 'info' ? (
             <div className="space-y-6">
               {detailData?.dealer && (
-                <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-2xl flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shrink-0">
+                <div className="p-4 bg-purple-50/80 border border-purple-200/80 rounded-2xl flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-purple-500/20">
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-slate-900">{detailData.dealer.company_name}</h4>
-                    <p className="text-xs text-slate-600 flex items-center gap-1.5 mt-0.5">
+                    <h4 className="text-sm font-black text-slate-900">{detailData.dealer.company_name}</h4>
+                    <p className="text-xs font-semibold text-purple-700 flex items-center gap-1.5 mt-0.5">
                       <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                      <span>{detailData.dealer.city || 'Verified Dealership'}</span>
+                      <span>{detailData.dealer.city || 'Verified UK Dealership'}</span>
                     </p>
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {rows.map(row => (
-                  <div key={row.label} className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+                  <div key={row.label} className="p-3.5 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-center justify-between">
                     <div className="flex items-center gap-2 text-slate-400">
                       {row.icon}
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{row.label}</span>
                     </div>
-                    <div className="text-xs text-slate-900 font-bold truncate max-w-[50%]">{row.value}</div>
+                    <div className="text-xs text-slate-900 font-extrabold truncate max-w-[50%]">{row.value}</div>
                   </div>
                 ))}
               </div>
 
               {user.bio && (
-                <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl">
                   <p className="text-xs text-slate-400 font-bold uppercase mb-1">User Bio</p>
-                  <p className="text-xs text-slate-700 leading-relaxed">{user.bio}</p>
+                  <p className="text-xs text-slate-700 font-medium leading-relaxed">{user.bio}</p>
                 </div>
               )}
             </div>
           ) : (
             <div className="space-y-4">
               {detailData?.cars.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">
-                  <Car className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs font-semibold">No vehicle listings found for this account.</p>
+                <div className="py-12 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                  <Car className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-slate-600">No vehicle listings found for this dealer account.</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Vehicles posted by this dealer will be listed here.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {detailData?.cars.map((car: any) => {
-                    const imgUrl = Array.isArray(car.images) && car.images[0] ? car.images[0] : '/placeholder-car.jpg';
+                    const imgUrl = car.image_url || (Array.isArray(car.images) && car.images[0] ? car.images[0] : '/placeholder-car.jpg');
                     const isProcessing = actionCarId === car.id;
 
                     return (
                       <div
                         key={car.id}
-                        className="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-300 transition-all"
+                        className="p-4 bg-white border border-slate-200/90 rounded-2xl shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-16 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                        {/* Vehicle Photo & Main Short Specs */}
+                        <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+                          <div className="w-24 h-20 sm:w-28 sm:h-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative group">
+                            <img src={imgUrl} alt={car.title || 'Car'} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            <span className="absolute bottom-1 left-1 bg-black/75 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs">
+                              {car.year || 'N/A'}
+                            </span>
                           </div>
-                          <div className="min-w-0">
+
+                          <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h5 className="text-xs font-extrabold text-slate-900 truncate">
-                                {car.year} {car.brand || car.make} {car.model}
+                              <h5 className="text-xs font-black text-slate-900 truncate">
+                                {car.title || `${car.year} ${car.brand || car.make} ${car.model}`}
                               </h5>
                               <Badge
-                                className={`text-[9px] font-extrabold px-2 py-0.2 uppercase border ${
+                                className={`text-[9px] font-extrabold px-2 py-0.5 uppercase border ${
                                   car.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                   car.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                                   'bg-amber-50 text-amber-700 border-amber-200'
@@ -337,21 +343,45 @@ function ProfileModal({
                                 {car.status}
                               </Badge>
                             </div>
-                            <p className="text-xs font-bold text-[#0055FE] mt-0.5">
-                              Rs. {Number(car.price || 0).toLocaleString()}
-                              <span className="text-[10px] text-slate-400 font-medium ml-2">
-                                {car.mileage ? `${Number(car.mileage).toLocaleString()} km` : ''}
-                              </span>
+
+                            <p className="text-sm font-black text-[#0055FE]">
+                              £{Number(car.price || 0).toLocaleString()} <span className="text-[10px] font-bold text-slate-400">GBP</span>
                             </p>
+
+                            {/* Short Specifications Tags */}
+                            <div className="flex items-center gap-1.5 flex-wrap pt-0.5 text-[10px] font-bold text-slate-600">
+                              {car.mileage && (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/60">
+                                  {Number(car.mileage).toLocaleString()} mi
+                                </span>
+                              )}
+                              {car.fuel_type && (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/60">
+                                  {car.fuel_type}
+                                </span>
+                              )}
+                              {car.transmission && (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/60">
+                                  {car.transmission}
+                                </span>
+                              )}
+                              {car.city && (
+                                <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#0055FE] border border-blue-100 flex items-center gap-0.5">
+                                  <MapPin className="w-2.5 h-2.5" /> {car.city}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        {/* Admin Action Buttons */}
+                        <div className="flex items-center gap-2 shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
                           {car.status !== 'approved' && (
                             <button
                               onClick={() => handleApproveCar(car.id)}
                               disabled={isProcessing}
-                              className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                              className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-xs"
+                              title="Approve listing"
                             >
                               {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
                               <span>Approve</span>
@@ -361,19 +391,19 @@ function ProfileModal({
                             <button
                               onClick={() => handleRejectCar(car.id)}
                               disabled={isProcessing}
-                              className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                              className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-xs"
+                              title="Reject listing"
                             >
                               {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5 text-rose-600" />}
                               <span>Reject</span>
                             </button>
                           )}
                           <a
-                            href={`/buy-car/${car.id}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors"
-                            title="View Public Page"
+                            href={`/admin/cars/${car.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                            title="View & Edit Car Details in Admin Console"
                           >
+                            <span>Inspect</span>
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         </div>
@@ -385,6 +415,7 @@ function ProfileModal({
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
