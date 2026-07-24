@@ -1,3 +1,5 @@
-import EditCarPage from "@/app/admin/cars/new/page";
+import { redirect } from 'next/navigation';
 
-export default EditCarPage;
+export default function SellerCarsNewRedirect() {
+  redirect('/seller/sell-car');
+}

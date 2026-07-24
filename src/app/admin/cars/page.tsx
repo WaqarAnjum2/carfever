@@ -92,7 +92,7 @@ function Pagination({ page, totalPages, onChange }: { page: number; totalPages: 
 export default function AdminCarsPage() {
   const pathname = usePathname();
   const isSeller = pathname.startsWith('/seller');
-  const newCarUrl = isSeller ? '/seller/cars/new' : '/admin/cars/new';
+  const newCarUrl = isSeller ? '/seller/sell-car' : '/admin/cars/new';
 
   const [cars, setCars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
