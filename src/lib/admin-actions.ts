@@ -669,13 +669,17 @@ export async function loginAdmin(email: string, password: string) {
 
   if (!userData) {
     await supabase.auth.signOut();
-    throw new Error('User account profile could not be retrieved.');
+    return { success: false as const, errorType: 'no_profile', error: 'User account profile could not be retrieved.' };
   }
 
   // 4. Strict Block / Suspension Enforcement
   if (userData.status === 'suspended') {
     await supabase.auth.signOut();
-    throw new Error('Your account has been suspended by an administrator. Please contact support for assistance.');
+    return {
+      success: false as const,
+      errorType: 'suspended',
+      error: 'Your account has been blocked. Please contact the administrator for assistance.',
+    };
   }
 
   revalidatePath('/admin', 'layout');

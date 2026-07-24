@@ -93,6 +93,19 @@ export default function LoginPage() {
         } else {
           window.location.href = "/admin/dashboard";
         }
+        return;
+      }
+
+      // Handle non-throwing error returns (e.g. suspended, no_profile)
+      if (!result.success) {
+        const errType = (result as any).errorType;
+        const errMsg = (result as any).error || "Login failed. Please try again.";
+        if (errType === "suspended") {
+          setError("BLOCKED: " + errMsg);
+        } else {
+          setError(errMsg);
+        }
+        setLoading(false);
       }
     } catch (err: any) {
       const msg = err?.message || "";
