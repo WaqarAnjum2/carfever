@@ -30,7 +30,6 @@ const sellerMenuItems: SellerMenuItem[] = [
   { label: "Seller Dashboard", href: "/seller/dashboard", icon: LayoutDashboard },
   { label: "My Cars",         href: "/seller/cars",      icon: Car },
   { label: "List Vehicle",    href: "/seller/sell-car",  icon: Plus },
-  { label: "Inspections",     href: "/seller/inspections", icon: ShieldCheck },
   { label: "Inquiries",       href: "/seller/inquiries",   icon: MessageSquare },
   { label: "Profile Settings", href: "/seller/settings/profile", icon: User },
 ];

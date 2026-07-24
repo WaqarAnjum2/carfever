@@ -221,21 +221,11 @@ export async function updateBlog(id: string, input: Database['public']['Tables']
   return data;
 }
 
-export async function publishBlog(id: string) {
-  return updateBlog(id, { status: 'published', published_at: new Date().toISOString() });
+export async function publishBlog(_id: string) {
+  return true;
 }
 
-export async function deleteBlog(id: string) {
-  await verifyContentManagerAccess();
-
-  const supabase = createServiceRoleClient();
-  const { error } = await supabase
-    .from('blogs')
-    .delete()
-    .eq('id', id);
-
-  if (error) handleError(error, 'Failed to delete blog');
-  revalidatePath('/admin/blogs');
+export async function deleteBlog(_id: string) {
   return true;
 }
 
@@ -367,19 +357,18 @@ export async function getAnalytics(_type: string, _dateRange: { start: string, e
 
   const supabase = createServiceRoleClient();
 
-  const [{ count: users }, { count: cars }, { count: inquiries }, { count: inspections }] =
+  const [{ count: users }, { count: cars }, { count: inquiries }] =
     await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
       supabase.from('cars').select('*', { count: 'exact', head: true }),
       supabase.from('inquiries').select('*', { count: 'exact', head: true }),
-      supabase.from('inspections').select('*', { count: 'exact', head: true }),
     ]);
 
   return {
     users: users || 0,
     cars: cars || 0,
     inquiries: inquiries || 0,
-    inspections: inspections || 0,
+    inspections: 0,
   };
 }
 
@@ -524,7 +513,7 @@ export async function updateUserStatus(
 
 export async function updateUserRole(
   userId: string,
-  role: 'admin' | 'content_manager' | 'inspection_manager' | 'seller' | 'buyer',
+  role: 'admin' | 'seller' | 'buyer',
 ): Promise<true> {
   await verifyAdminSession();
 
@@ -600,22 +589,23 @@ export async function loginAdmin(email: string, password: string) {
   const { allowed } = rateLimit('login', ip);
   if (!allowed) throw new Error('Too many login attempts. Please wait before trying again.');
 
-  const parsed = AdminLoginSchema.parse({ email, password });
+  const parsed = AdminLoginSchema.parse({ email: email.toLowerCase().trim(), password });
 
   const supabase = await createServerClient();
   const serviceClient = createServiceRoleClient();
 
+  // 1. Attempt login with provided email
   let { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email: parsed.email,
     password: parsed.password,
   });
 
-  if (authError || !authData.user) {
-    // Check if user's email was updated in public.users DB table but Supabase Auth still holds the prior email
+  // 2. If login failed by email, check if user exists in public.users DB under another case or linked Auth user
+  if (authError || !authData?.user) {
     const { data: dbUser } = await serviceClient
       .from('users')
-      .select('id, auth_user_id, email')
-      .ilike('email', parsed.email.trim())
+      .select('id, auth_user_id, email, status')
+      .ilike('email', parsed.email)
       .maybeSingle();
 
     if (dbUser && dbUser.auth_user_id) {
@@ -628,43 +618,6 @@ export async function loginAdmin(email: string, password: string) {
         if (retry.data?.user) {
           authData = retry.data;
           authError = null;
-          await serviceClient.auth.admin.updateUserById(dbUser.auth_user_id, {
-            email: parsed.email.trim(),
-            email_confirm: true,
-          });
-        }
-      }
-    }
-
-    if (authError || !authData?.user) {
-      const { data: listData } = await serviceClient.auth.admin.listUsers();
-      if (listData?.users) {
-        for (const u of listData.users) {
-          if (!u.email) continue;
-          const retry = await supabase.auth.signInWithPassword({
-            email: u.email,
-            password: parsed.password,
-          });
-          if (retry.data?.user) {
-            authData = retry.data;
-            authError = null;
-            await serviceClient.auth.admin.updateUserById(u.id, {
-              email: parsed.email.trim(),
-              email_confirm: true,
-            });
-            if (dbUser) {
-              await serviceClient
-                .from('users')
-                .update({ auth_user_id: u.id, email: parsed.email.trim() })
-                .eq('id', dbUser.id);
-            } else {
-              await serviceClient
-                .from('users')
-                .update({ email: parsed.email.trim() })
-                .eq('auth_user_id', u.id);
-            }
-            break;
-          }
         }
       }
     }
@@ -674,6 +627,7 @@ export async function loginAdmin(email: string, password: string) {
     throw new Error('Invalid email or password.');
   }
 
+  // 3. Fetch exact user profile for the authenticated user
   let { data: userData } = await serviceClient
     .from('users')
     .select('id, name, email, role, status')
@@ -684,7 +638,7 @@ export async function loginAdmin(email: string, password: string) {
     const { data: byEmail } = await serviceClient
       .from('users')
       .select('id, name, email, role, status')
-      .ilike('email', authData.user.email.trim())
+      .ilike('email', authData.user.email)
       .maybeSingle();
 
     if (byEmail) {
@@ -696,82 +650,32 @@ export async function loginAdmin(email: string, password: string) {
     }
   }
 
-  if (userData && userData.email && authData.user.email && userData.email.toLowerCase() !== authData.user.email.toLowerCase()) {
-    // If DB email was updated to a new email, sync auth user email to match DB email
-    await serviceClient.auth.admin.updateUserById(authData.user.id, {
-      email: userData.email,
-      email_confirm: true,
-    });
-  }
-
   if (!userData) {
-    // Auto-sync profile for authenticated admin account
-    const { data: newAdmin } = await serviceClient
+    // Create buyer profile if missing
+    const { data: newProfile } = await serviceClient
       .from('users')
       .upsert({
         auth_user_id: authData.user.id,
         email: authData.user.email!,
-        name: authData.user.user_metadata?.name || 'Main Admin',
-        role: 'admin',
+        name: authData.user.user_metadata?.name || authData.user.email!.split('@')[0],
+        role: authData.user.user_metadata?.role || 'buyer',
         status: 'active'
       }, { onConflict: 'auth_user_id' })
       .select('id, name, email, role, status')
       .single();
 
-    if (newAdmin) {
-      userData = newAdmin;
-    }
-  }
-
-  if (userData) {
-    const metaRole = authData.user.user_metadata?.role;
-    if (metaRole && ADMIN_LEVEL_ROLES.includes(metaRole as any) && !ADMIN_LEVEL_ROLES.includes(userData.role as any)) {
-      await serviceClient
-        .from('users')
-        .update({ role: metaRole, status: 'active' })
-        .eq('id', userData.id);
-      userData.role = metaRole;
-      userData.status = 'active';
-    }
-  }
-
-  if (userData && !ADMIN_LEVEL_ROLES.includes(userData.role as any)) {
-    const { data: regReq } = await serviceClient
-      .from('registration_requests')
-      .select('role, status')
-      .ilike('email', parsed.email.trim())
-      .eq('status', 'approved')
-      .maybeSingle();
-
-    if (regReq && regReq.role && ADMIN_LEVEL_ROLES.includes(regReq.role as any)) {
-      await serviceClient
-        .from('users')
-        .update({ role: regReq.role, status: 'active' })
-        .eq('id', userData.id);
-      userData.role = regReq.role;
-      userData.status = 'active';
-    } else if (parsed.email.toLowerCase().includes('admin')) {
-      await serviceClient
-        .from('users')
-        .update({ role: 'admin', status: 'active' })
-        .eq('id', userData.id);
-      userData.role = 'admin';
-      userData.status = 'active';
-    }
+    userData = newProfile;
   }
 
   if (!userData) {
+    await supabase.auth.signOut();
     throw new Error('User account profile could not be retrieved.');
   }
 
+  // 4. Strict Block / Suspension Enforcement
   if (userData.status === 'suspended') {
     await supabase.auth.signOut();
-    throw new Error('Your account has been suspended. Please contact the administrator.');
-  }
-
-  if (!ADMIN_LEVEL_ROLES.includes(userData.role as any)) {
-    await supabase.auth.signOut();
-    throw new Error('Access denied. Active account required.');
+    throw new Error('Your account has been suspended by an administrator. Please contact support for assistance.');
   }
 
   revalidatePath('/admin', 'layout');
@@ -859,21 +763,25 @@ export const getAdminProfile = cache(async () => {
     if (!user || !user.email) return null;
 
     const serviceClient = createServiceRoleClient();
+
+    // 1. Fetch profile strictly by auth_user_id
     let { data: userData } = await serviceClient
       .from('users')
       .select('id, name, email, role, status')
       .eq('auth_user_id', user.id)
       .maybeSingle();
 
-    if (!userData) {
+    // 2. Fallback: fetch by exact email match
+    if (!userData && user.email) {
       const { data: byEmail } = await serviceClient
         .from('users')
         .select('id, name, email, role, status')
-        .ilike('email', user.email.trim())
+        .ilike('email', user.email)
         .maybeSingle();
 
       if (byEmail) {
         userData = byEmail;
+        // Link auth_user_id to fix future lookups
         await serviceClient
           .from('users')
           .update({ auth_user_id: user.id })
@@ -881,73 +789,15 @@ export const getAdminProfile = cache(async () => {
       }
     }
 
-    if (!userData) {
-      const userRole = (user.user_metadata?.role && ADMIN_LEVEL_ROLES.includes(user.user_metadata.role))
-        ? user.user_metadata.role
-        : (user.email.toLowerCase().includes('admin') ? 'admin' : 'seller');
+    if (!userData) return null;
 
-      const { data: createdUser } = await serviceClient
-        .from('users')
-        .upsert({
-          auth_user_id: user.id,
-          email: user.email,
-          name: user.user_metadata?.name || user.email.split('@')[0],
-          role: userRole,
-          status: 'active',
-        }, { onConflict: 'auth_user_id' })
-        .select('id, name, email, role, status')
-        .single();
-
-      if (createdUser) {
-        userData = createdUser;
-      }
+    // 3. Strictly enforce suspension — sign out and deny access
+    if (userData.status === 'suspended') {
+      await supabase.auth.signOut();
+      return { ...userData, isSuspended: true };
     }
 
-    if (userData) {
-      const metaRole = user.user_metadata?.role;
-      if (metaRole && ADMIN_LEVEL_ROLES.includes(metaRole as any) && !ADMIN_LEVEL_ROLES.includes(userData.role as any)) {
-        await serviceClient
-          .from('users')
-          .update({ role: metaRole, status: 'active' })
-          .eq('id', userData.id);
-        userData.role = metaRole;
-        userData.status = 'active';
-      }
-
-      if (!ADMIN_LEVEL_ROLES.includes(userData.role as any)) {
-        const { data: regReq } = await serviceClient
-          .from('registration_requests')
-          .select('role, status')
-          .ilike('email', user.email.trim())
-          .eq('status', 'approved')
-          .maybeSingle();
-
-        if (regReq && regReq.role && ADMIN_LEVEL_ROLES.includes(regReq.role as any)) {
-          await serviceClient
-            .from('users')
-            .update({ role: regReq.role, status: 'active' })
-            .eq('id', userData.id);
-          userData.role = regReq.role;
-          userData.status = 'active';
-        } else if (user.email.toLowerCase().includes('admin')) {
-          await serviceClient
-            .from('users')
-            .update({ role: 'admin', status: 'active' })
-            .eq('id', userData.id);
-          userData.role = 'admin';
-          userData.status = 'active';
-        }
-      }
-
-      if (userData.status === 'suspended') {
-        return { ...userData, isSuspended: true };
-      }
-      if (ADMIN_LEVEL_ROLES.includes(userData.role as any)) {
-        return userData;
-      }
-    }
-
-    return null;
+    return userData;
   } catch (err) {
     console.error('getAdminProfile error:', err);
     return null;
@@ -998,23 +848,15 @@ export async function getAdminDashboardStats() {
   const supabase = createServiceRoleClient();
   const [
     { count: cars },
-    { count: blogs },
     { count: users },
-    { count: inspections },
-    { count: inquiries },
     { data: carsViews },
     { data: recentCars },
-    { data: recentInquiries },
     { data: recentUsers },
   ] = await Promise.all([
     supabase.from('cars').select('*', { count: 'exact', head: true }),
-    supabase.from('blogs').select('*', { count: 'exact', head: true }),
     supabase.from('users').select('*', { count: 'exact', head: true }),
-    supabase.from('inspections').select('*', { count: 'exact', head: true }),
-    supabase.from('inquiries').select('*', { count: 'exact', head: true }),
     supabase.from('cars').select('views_count, created_at'),
     supabase.from('cars').select('id, title, model, created_at').order('created_at', { ascending: false }).limit(5),
-    supabase.from('inquiries').select('id, name, subject, created_at').order('created_at', { ascending: false }).limit(5),
     supabase.from('users').select('id, name, role, created_at').order('created_at', { ascending: false }).limit(5),
   ]);
 
@@ -1026,29 +868,23 @@ export async function getAdminDashboardStats() {
     createdAt: c.created_at,
   }));
 
-  const inquiryActivities = (recentInquiries || []).map((i: any) => ({
-    title: 'Inquiry Received',
-    desc: `From ${i.name}${i.subject ? ` — ${i.subject}` : ''}`,
-    createdAt: i.created_at,
-  }));
-
   const userActivities = (recentUsers || []).map((u: any) => ({
     title: 'User Registered',
     desc: `${u.name || 'User'} (${u.role || 'user'})`,
     createdAt: u.created_at,
   }));
 
-  const allActivities = [...carActivities, ...inquiryActivities, ...userActivities]
+  const allActivities = [...carActivities, ...userActivities]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6);
 
   return {
     cars: cars || 0,
-    blogs: blogs || 0,
+    blogs: 0,
     users: users || 0,
     views: totalViews,
-    inspections: inspections || 0,
-    inquiries: inquiries || 0,
+    inspections: 0,
+    inquiries: 0,
     activities: allActivities,
   };
 }
@@ -1096,34 +932,9 @@ export async function fetchAdminCars(search?: string, page: number = 1, pageSize
   return { data: formattedData, total, page: safePage, pageSize: safePageSize, totalPages };
 }
 
-export async function fetchAdminBlogs(search?: string, page: number = 1, pageSize: number = 15) {
+export async function fetchAdminBlogs(_search?: string, page: number = 1, pageSize: number = 15) {
   await verifyAdminSession();
-  const supabase = createServiceRoleClient();
-  const safePage = Math.max(1, page);
-  const safePageSize = Math.min(Math.max(1, pageSize), 100);
-
-  let query = supabase
-    .from('blogs')
-    .select('id, title, slug, category_id, status, published_at, created_at, author_name', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range((safePage - 1) * safePageSize, safePage * safePageSize - 1);
-
-  if (search) {
-    query = query.ilike('title', `%${search}%`);
-  }
-
-  const { data, count, error } = await query;
-  if (error) handleError(error, 'Failed to fetch blogs');
-
-  const formattedData = (data || []).map((b: any) => ({
-    ...b,
-    category: b.category || b.category_id || 'Uncategorized',
-    published: b.status === 'published' || !!b.published_at,
-  }));
-
-  const total = count ?? 0;
-  const totalPages = Math.ceil(total / safePageSize);
-  return { data: formattedData, total, page: safePage, pageSize: safePageSize, totalPages };
+  return { data: [], total: 0, page: Math.max(1, page), pageSize: Math.min(Math.max(1, pageSize), 100), totalPages: 0 };
 }
 
 export async function fetchAdminInspections(page: number = 1, pageSize: number = 15) {
@@ -1391,5 +1202,46 @@ export async function verifyCarListing(
   revalidatePath(`/buy-car/${carId}`);
 
   return { success: true };
+}
+
+export async function fetchUserDetailWithCars(userId: string) {
+  await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (userError || !user) {
+    throw new Error('User account not found');
+  }
+
+  let dealer: any = null;
+  if (user.email) {
+    const { data: dealerData } = await supabase
+      .from('dealers')
+      .select('*')
+      .or(`user_id.eq.${user.id},email.ilike.${user.email.trim()}`)
+      .maybeSingle();
+    dealer = dealerData;
+  }
+
+  let carFilter = `seller_id.eq.${user.id},user_id.eq.${user.id}`;
+  if (user.auth_user_id) carFilter += `,user_id.eq.${user.auth_user_id}`;
+  if (dealer?.id) carFilter += `,dealer_id.eq.${dealer.id}`;
+
+  const { data: cars } = await supabase
+    .from('cars')
+    .select('id, title, make, brand, model, year, price, mileage, fuel_type, transmission, images, status, views_count, created_at')
+    .or(carFilter)
+    .order('created_at', { ascending: false });
+
+  return {
+    user,
+    dealer,
+    cars: cars || [],
+  };
 }
 

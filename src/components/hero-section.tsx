@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, MapPin, ChevronDown, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Search, MapPin, ChevronDown, Sparkles, UserPlus, Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -71,12 +72,28 @@ export function HeroSection() {
 
         {/* Subtitle */}
         <p
-          className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto mb-8 sm:mb-10 px-2 sm:px-0 animate-slide-up"
+          className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0 animate-slide-up"
           style={{ animationDelay: "0.1s" }}
         >
           Browse through thousands of verified listings. Buy, sell, or exchange
           with confidence on the most trusted automotive platform.
         </p>
+
+        {/* Registration CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8 animate-slide-up">
+          <Link href="/register/seller">
+            <Button size="lg" className="w-full sm:w-auto bg-[#0055FE] hover:bg-blue-700 text-white font-extrabold h-12 px-6 text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-105">
+              <Building2 className="w-4 h-4 mr-2" />
+              <span>Register as Seller / Dealer</span>
+            </Button>
+          </Link>
+          <Link href="/register/buyer">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-extrabold h-12 px-6 text-xs sm:text-sm rounded-xl shadow-xs transition-all">
+              <UserPlus className="w-4 h-4 mr-2 text-[#0055FE]" />
+              <span>Register as Buyer</span>
+            </Button>
+          </Link>
+        </div>
 
         {/* Search Bar */}
         <div

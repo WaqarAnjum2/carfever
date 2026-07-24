@@ -27,6 +27,7 @@ import {
   Clock,
   HelpCircle,
   Loader2,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
@@ -41,32 +42,11 @@ interface NavLink {
   children?: { label: string; href: string; }[];
 }
 
-const navLinks: NavLink[] = [
-  {
-    label: "Buy Cars",
-    href: "/buy-car",
-    children: [
-      { label: "Browse All Vehicles", href: "/buy-car" },
-      { label: "Inspection Certified", href: "/buy-car?inspected=true" },
-    ],
-  },
-  {
-    label: "Sell & Services",
-    href: "/sell-car",
-    children: [
-      { label: "Post a Free Car Ad", href: "/sell-car" },
-      { label: "Book Inspection", href: "/inspections" },
-      { label: "Certified Dealers", href: "/dealers" },
-    ],
-  },
-  {
-    label: "Resources",
-    href: "/blog",
-    children: [
-      { label: "Blogs & Guides", href: "/blog" },
-      { label: "Check Registration Status", href: "#status" },
-    ],
-  },
+const navLinks = [
+  { label: "Buy Cars", href: "/buy-car" },
+  { label: "Sell Car", href: "/sell-car" },
+  { label: "Certified Dealers", href: "/dealers" },
+  { label: "About Us", href: "/about" },
 ];
 
 
@@ -80,18 +60,8 @@ interface DbUser {
 const ROLE_BASED_LINKS: Record<string, { label: string; href: string; icon: React.ComponentType<any> }[]> = {
   admin: [
     { label: "Admin Portal", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Profile Settings", href: "/admin/settings/profile", icon: UserCog },
-  ],
-  content_manager: [
-    { label: "Admin Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Manage Cars", href: "/admin/cars", icon: Car },
-    { label: "Manage Blogs", href: "/admin/blogs", icon: FileText },
-    { label: "Profile Settings", href: "/admin/settings/profile", icon: UserCog },
-  ],
-  inspection_manager: [
-    { label: "Admin Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Inspections", href: "/admin/inspections", icon: ShieldCheck },
-    { label: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
+    { label: "Users & Dealers", href: "/admin/users", icon: UserCog },
     { label: "Profile Settings", href: "/admin/settings/profile", icon: UserCog },
   ],
   buyer: [
@@ -99,17 +69,16 @@ const ROLE_BASED_LINKS: Record<string, { label: string; href: string; icon: Reac
   ],
   seller: [
     { label: "Seller Console", href: "/seller/dashboard", icon: LayoutDashboard },
-    { label: "My Cars", href: "/seller/cars", icon: Car },
-    { label: "List New Car", href: "/sell-car", icon: Car },
+    { label: "My Car Listings", href: "/seller/cars", icon: Car },
+    { label: "Post New Car", href: "/seller/sell-car", icon: Plus },
+    { label: "Profile Settings", href: "/seller/settings/profile", icon: UserCog },
   ],
 };
 
 const ROLE_BADGE: Record<string, { label: string; color: string }> = {
-  admin: { label: "Admin", color: "#0055FE" },
-  content_manager: { label: "Content Manager", color: "#00B67A" },
-  inspection_manager: { label: "Inspector", color: "#F59E0B" },
-  buyer: { label: "Buyer", color: "#8B5CF6" },
-  seller: { label: "Seller", color: "#EC4899" },
+  admin: { label: "Super Admin", color: "#0055FE" },
+  buyer: { label: "Buyer Account", color: "#8B5CF6" },
+  seller: { label: "Verified Dealer", color: "#EC4899" },
 };
 
 function getWishlistCount(): number {
@@ -364,53 +333,15 @@ export function Navbar() {
             </Link>
 
             {/* Desktop Nav */}
-            <nav ref={navDropdownRef} className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => (
-                <div
+                <Link
                   key={link.label}
-                  className="relative"
-                  onMouseEnter={() => link.children && setOpenDropdown(link.label)}
-                  onMouseLeave={() => setOpenDropdown(null)}
+                  href={link.href}
+                  className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-[#0055FE] rounded-xl hover:bg-blue-50/80 transition-all duration-200"
                 >
-                  <Link
-                    href={link.href}
-                    className="flex items-center gap-1 px-3.5 py-2 text-sm font-semibold text-gray-600 hover:text-[#0055FE] rounded-lg hover:bg-blue-50 transition-all duration-200"
-                  >
-                    {link.label}
-                    {link.children && (
-                      <ChevronDown
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                          openDropdown === link.label ? "rotate-180 text-[#0055FE]" : "text-gray-400"
-                        }`}
-                      />
-                    )}
-                  </Link>
-
-                  {link.children && openDropdown === link.label && (
-                    <div className="absolute left-0 top-full pt-1.5 w-56 z-50 animate-in fade-in zoom-in-95 duration-150">
-                      <div className="bg-white rounded-xl shadow-xl border border-gray-100 p-2 space-y-1">
-                        {link.children.map((child) => (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            onClick={(e) => {
-                              if (child.href === "#status") {
-                                e.preventDefault();
-                                setStatusModalOpen(true);
-                                setStatusResult(null);
-                                setStatusError("");
-                              }
-                              setOpenDropdown(null);
-                            }}
-                            className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-700 hover:text-[#0055FE] hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  {link.label}
+                </Link>
               ))}
             </nav>
 
@@ -510,28 +441,31 @@ export function Navbar() {
                   >
                     <Search className="w-3.5 h-3.5" /> Check Status
                   </button>
-                  <Link
-                    href="/register"
-                    className="hidden sm:inline-flex text-sm font-semibold text-gray-600 hover:text-[#0055FE] transition-colors mr-2"
-                  >
-                    Register
-                  </Link>
                   <div className="hidden sm:flex items-center gap-2">
                     <Link href="/login">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-[#0055FE] text-[#0055FE] hover:bg-blue-50"
+                        className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
                       >
                         Login
                       </Button>
                     </Link>
-                    <Link href="/register">
+                    <Link href="/register/buyer">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-[#0055FE] text-[#0055FE] hover:bg-blue-50 font-bold text-xs rounded-xl"
+                      >
+                        Register Buyer
+                      </Button>
+                    </Link>
+                    <Link href="/register/seller">
                       <Button
                         size="sm"
-                        className="bg-[#0055FE] hover:bg-blue-700 text-white font-semibold"
+                        className="bg-[#0055FE] hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm shadow-blue-500/20"
                       >
-                        Get Started
+                        Become Seller
                       </Button>
                     </Link>
                   </div>
@@ -563,46 +497,14 @@ export function Navbar() {
 
                       <nav className="flex-1 overflow-y-auto py-2">
                         {navLinks.map((link) => (
-                          <div key={link.label} className="border-b border-gray-50/50">
-                            <div className="flex items-center justify-between px-5 py-3">
-                              <Link
-                                href={link.href}
-                                className="text-gray-900 hover:text-[#0055FE] text-sm font-semibold"
-                                onClick={() => setMobileOpen(false)}
-                              >
-                                {link.label}
-                              </Link>
-                              {link.children && (
-                                <button
-                                  onClick={() => setOpenDropdown(openDropdown === link.label ? null : link.label)}
-                                  className="p-1 rounded text-gray-400 hover:text-gray-600"
-                                >
-                                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${openDropdown === link.label ? 'rotate-180 text-[#0055FE]' : ''}`} />
-                                </button>
-                              )}
-                            </div>
-                            {link.children && openDropdown === link.label && (
-                              <div className="bg-gray-50 px-5 py-2 space-y-2">
-                                {link.children.map((child) => (
-                                  <Link
-                                    key={child.href}
-                                    href={child.href}
-                                    onClick={(e) => {
-                                      if (child.href === "#status") {
-                                        e.preventDefault();
-                                        setStatusModalOpen(true);
-                                        setStatusResult(null);
-                                        setStatusError("");
-                                      }
-                                      setMobileOpen(false);
-                                    }}
-                                    className="block text-xs font-medium text-gray-600 hover:text-[#0055FE] py-1"
-                                  >
-                                    {child.label}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
+                          <div key={link.label} className="border-b border-gray-100">
+                            <Link
+                              href={link.href}
+                              className="flex items-center px-5 py-3.5 text-gray-900 hover:text-[#0055FE] text-sm font-bold hover:bg-blue-50/60 transition-colors"
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              {link.label}
+                            </Link>
                           </div>
                         ))}
 
@@ -646,15 +548,22 @@ export function Navbar() {
                         ) : (
                           <>
                             <Link
-                              href="/register"
-                              className="block w-full text-center py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold transition-all"
+                              href="/register/buyer"
+                              className="block w-full text-center py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all"
                               onClick={() => setMobileOpen(false)}
                             >
-                              Register
+                              Register as Buyer
+                            </Link>
+                            <Link
+                              href="/register/seller"
+                              className="block w-full text-center py-2.5 rounded-xl bg-[#0055FE] text-white hover:bg-blue-700 text-xs font-bold transition-all shadow-md shadow-blue-500/20"
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              Become a Seller / Dealer
                             </Link>
                             <Link
                               href="/login"
-                              className="block w-full text-center py-3 rounded-xl border border-[#0055FE] text-[#0055FE] hover:bg-blue-50 text-sm font-semibold transition-all"
+                              className="block w-full text-center py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all"
                               onClick={() => setMobileOpen(false)}
                             >
                               Login

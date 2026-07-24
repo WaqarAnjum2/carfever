@@ -9,13 +9,13 @@ import { headers } from 'next/headers';
 import { verifyAdminSession } from './admin-actions';
 import type { DbRegistrationRequest } from './supabase/types';
 
-export type AllowedRegistrationRole = 'buyer' | 'seller' | 'content_manager' | 'inspection_manager';
+export type AllowedRegistrationRole = 'buyer' | 'seller';
 
 const RegistrationRequestSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
-  role: z.enum(['buyer', 'seller', 'content_manager', 'inspection_manager'], { message: 'Admin role is not permitted' }),
+  role: z.enum(['buyer', 'seller'], { message: 'Admin role is not permitted' }),
   message: z.string().max(1000).optional(),
 });
 
@@ -82,12 +82,63 @@ export async function submitRegistrationRequest(input: {
       return { success: false, error: 'A pending registration request for this email address already exists.' };
     }
 
-    // 3. Insert registration request
-    const targetRole = parsed.role;
-    const dbRole = (['buyer', 'seller'].includes(targetRole) ? targetRole : 'seller') as any;
-    const formattedMessage = (['content_manager', 'inspection_manager'].includes(targetRole))
-      ? `[Requested Role: ${targetRole}] ${parsed.message || ''}`.trim()
-      : (parsed.message || null);
+    // 3. Auto-approve Buyer accounts instantly on creation (no admin approval needed)
+    if (parsed.role === 'buyer') {
+      const passwordToSet = 'Buyer' + Math.floor(100000 + Math.random() * 900000) + '!';
+      let authUserId: string | null = null;
+
+      const { data: authData, error: signUpError } = await supabase.auth.admin.createUser({
+        email: email,
+        password: passwordToSet,
+        email_confirm: true,
+        user_metadata: { name: parsed.name, role: 'buyer' },
+      });
+
+      if (signUpError || !authData?.user) {
+        const { data: listData } = await supabase.auth.admin.listUsers();
+        const existing = listData?.users?.find(u => u.email?.toLowerCase() === email);
+        if (existing) {
+          authUserId = existing.id;
+          await supabase.auth.admin.updateUserById(authUserId, { password: passwordToSet });
+        } else {
+          throw new Error(`Failed to create buyer account: ${signUpError?.message || 'Unknown error'}`);
+        }
+      } else {
+        authUserId = authData.user.id;
+      }
+
+      await supabase.from('users').upsert({
+        auth_user_id: authUserId,
+        name: parsed.name,
+        email: email,
+        phone: parsed.phone || null,
+        role: 'buyer',
+        status: 'active',
+      }, { onConflict: 'email' });
+
+      await supabase.from('registration_requests').insert({
+        name: parsed.name,
+        email: email,
+        phone: parsed.phone || null,
+        role: 'buyer',
+        status: 'approved',
+        admin_notes: 'Auto-approved buyer account',
+        reviewed_at: new Date().toISOString(),
+      });
+
+      revalidatePath('/admin/users');
+
+      return {
+        success: true,
+        autoApproved: true,
+        email,
+        password: passwordToSet,
+      };
+    }
+
+    // 4. Seller / Dealer registration requires admin approval
+    const dbRole = 'seller';
+    const formattedMessage = parsed.message || null;
 
     const { error } = await supabase
       .from('registration_requests')
@@ -97,12 +148,13 @@ export async function submitRegistrationRequest(input: {
         phone: parsed.phone || null,
         role: dbRole,
         message: formattedMessage,
+        status: 'pending',
       });
 
     if (error) throw new Error(error.message);
 
     revalidatePath('/admin/registrations');
-    return { success: true };
+    return { success: true, autoApproved: false };
   } catch (err) {
     console.error('submitRegistrationRequest error:', err);
     return {

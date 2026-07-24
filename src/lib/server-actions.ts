@@ -166,7 +166,7 @@ export async function fetchApprovedCars(
       return query;
     };
 
-    const baseFields = 'id, title, brand, model, year, price, currency, mileage, fuel_type, transmission, body_type, exterior_color, interior_color, color, engine, engine_capacity, city, description, features, images, slug, condition, is_featured, is_inspected, inspection_rating, inspection_notes, inspected_at, inspector_name, inspector_email, inspector_phone, seller_name, seller_phone, created_at';
+    const baseFields = '*';
 
     let initialQuery = supabase.from('cars').select(baseFields, { count: 'exact' }).eq('status', 'approved');
     initialQuery = applyFiltersAndSort(initialQuery);

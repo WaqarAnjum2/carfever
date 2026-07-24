@@ -98,7 +98,7 @@ export async function middleware(request: NextRequest) {
     if (role === 'buyer') {
       return NextResponse.redirect(new URL('/', request.url));
     }
-    const ADMIN_ROLES = ['admin', 'content_manager', 'inspection_manager'];
+    const ADMIN_ROLES = ['admin'];
     if (!ADMIN_ROLES.includes(role)) {
       return NextResponse.redirect(new URL('/login', request.url));
     }

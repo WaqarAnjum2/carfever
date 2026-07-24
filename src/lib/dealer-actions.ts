@@ -19,7 +19,7 @@ async function getClientIp(): Promise<string> {
 }
 
 export async function getApprovedDealers(filters?: { city?: string; search?: string }) {
-  const supabase = await createServerClient();
+  const supabase = createServiceRoleClient();
   let query = supabase.from('dealers').select('*').eq('status', 'approved').order('created_at', { ascending: false });
 
   if (filters?.city) {
@@ -57,7 +57,7 @@ export async function getAllDealers(page: number = 1, pageSize: number = 20) {
 }
 
 export async function getDealerById(id: string) {
-  const supabase = await createServerClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase.from('dealers').select('*').eq('id', id).single();
 
   if (error) throw new Error(error.message);
@@ -65,7 +65,7 @@ export async function getDealerById(id: string) {
 }
 
 export async function getDealerCars(dealerId: string) {
-  const supabase = await createServerClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from('cars')
     .select('*')

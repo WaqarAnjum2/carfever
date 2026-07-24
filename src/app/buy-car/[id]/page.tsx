@@ -62,6 +62,10 @@ export default function CarDetailsPage() {
       try {
         const res = await getCarDetailsPageDataAction(id);
         if (!isMounted) return;
+        if (!res.user) {
+          router.replace(`/login?redirect=${encodeURIComponent(`/buy-car/${id}`)}`);
+          return;
+        }
         setCar(res.car);
         setUser(res.user);
         setSimilarCars(res.similarCars);
@@ -385,7 +389,7 @@ export default function CarDetailsPage() {
           {/* Details Tabs */}
           <div className="mb-20">
             <div className="flex border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
-              {['description', 'features', 'inspection'].map((tab) => (
+              {['description', 'features'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -394,7 +398,7 @@ export default function CarDetailsPage() {
                     : 'border-transparent text-gray-500 hover:text-gray-900'
                     }`}
                 >
-                  {tab === 'features' ? 'Features & Options' : tab === 'inspection' ? 'Inspection Report' : 'Description'}
+                  {tab === 'features' ? 'Features & Options' : 'Description'}
                 </button>
               ))}
             </div>
@@ -443,85 +447,6 @@ export default function CarDetailsPage() {
                       </>
                     )
                   }
-                </div>
-              )}
-              {activeTab === 'inspection' && (
-                <div className="space-y-6">
-                  {car.is_inspected ? (
-                    <div className="bg-emerald-50/90 border border-emerald-200 p-6 rounded-2xl space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-md">
-                            <ShieldCheck className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="text-base font-black text-emerald-950 uppercase tracking-wide">
-                                Certified 200+ Point Inspection Report
-                              </h4>
-                              {car.inspection_rating && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-black">
-                                  ★ {car.inspection_rating} / 10
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs font-semibold text-emerald-800 mt-0.5">
-                              Verified by CarFever Certified Engineering Inspectors
-                            </p>
-                          </div>
-                        </div>
-
-                        {car.inspected_at && (
-                          <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl self-start sm:self-auto">
-                            Audit Date: {new Date(car.inspected_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-emerald-200/60">
-                        <div className="bg-white/90 p-4 rounded-xl border border-emerald-200/80 space-y-1">
-                          <span className="text-[10px] font-extrabold uppercase text-emerald-800 tracking-wider block">
-                            Assigned Inspector Details
-                          </span>
-                          <div className="text-sm font-black text-gray-900">
-                            {car.inspector_name || "Official CarFever Inspector"}
-                          </div>
-                          {car.inspector_email && (
-                            <div className="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                              <Mail className="w-3.5 h-3.5 text-emerald-600" /> {car.inspector_email}
-                            </div>
-                          )}
-                          {car.inspector_phone && (
-                            <div className="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                              <Phone className="w-3.5 h-3.5 text-emerald-600" /> {car.inspector_phone}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="bg-white/90 p-4 rounded-xl border border-emerald-200/80 space-y-1">
-                          <span className="text-[10px] font-extrabold uppercase text-emerald-800 tracking-wider block">
-                            Inspector Summary & Audit Notes
-                          </span>
-                          <p className="text-xs font-medium text-emerald-950 italic leading-relaxed">
-                            "{car.inspection_notes || "Engine, suspension, electronics, and body structure verified genuine."}"
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <ShieldCheck className="w-16 h-16 text-[#0055FE] mb-4 opacity-80" />
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">CarFever Certified Inspection Available</h3>
-                      <p className="text-gray-500 max-w-md mb-6 text-sm">
-                        Physical inspection can be scheduled on-demand for this vehicle.
-                      </p>
-                      <Link href="/inspections">
-                        <Button className="bg-[#0055FE] hover:bg-blue-700 text-white font-bold">
-                          Schedule Vehicle Inspection
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

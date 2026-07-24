@@ -56,59 +56,6 @@ export function useRealtimeNotifications() {
           }
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'inquiries'
-        },
-        (payload: any) => {
-          setNewInquiriesCount((prev) => prev + 1)
-          toast('📩 New Inquiry Received!', {
-            description: `From: ${payload.new.name} - ${payload.new.subject || 'No subject'}`,
-            action: {
-              label: 'View',
-              onClick: () => window.location.href = '/admin/inquiries'
-            }
-          })
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'inspections'
-        },
-        (payload: any) => {
-          toast('🔍 New Inspection Booked!', {
-            description: `${payload.new.customer_name} booked ${payload.new.plan} plan for ${payload.new.make} ${payload.new.model}`,
-            action: {
-              label: 'View',
-              onClick: () => window.location.href = '/admin/inspections'
-            }
-          })
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'inspections'
-        },
-        (payload: any) => {
-          const oldStatus = payload.old.status
-          const newStatus = payload.new.status
-          
-          if (oldStatus !== newStatus) {
-            toast('📋 Inspection Status Updated', {
-              description: `Booking #${payload.new.id.slice(0, 8)} changed from ${oldStatus} to ${newStatus}`
-            })
-          }
-        }
-      )
       .subscribe()
 
     return () => {

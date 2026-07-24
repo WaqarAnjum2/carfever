@@ -49,21 +49,21 @@ const features = [
     ctaHref: "/buy-car",
   },
   {
-    key: "inspection",
+    key: "dealers",
     icon: FileCheck,
-    title: "Car Inspection",
+    title: "Verified Dealerships",
     description:
-      "Get a 200+ point professional inspection report before you buy. No surprises.",
+      "Connect with certified dealership partners with verified inventory and buyer protection.",
     color: "neon-red" as const,
-    detailTitle: "200+ Point Inspection Service",
-    detailDescription: "Buying a used car shouldn't feel like a gamble. Our certified mechanics inspect the vehicle bumper-to-bumper to give you a transparent, unbiased digital report.",
+    detailTitle: "Verified Dealership Network",
+    detailDescription: "Shop with peace of mind from our network of authorized car dealerships.",
     benefits: [
-      "Full engine compression and transmission performance diagnostics",
-      "Digital paint testing to check for hidden accident repaints",
-      "Detailed suspension, brakes, tyre wear, and electrical health check"
+      "Verified dealership credentials & business checks",
+      "Direct contact options & instant inquiry routing",
+      "Authentic inventory listings updated daily"
     ],
-    ctaText: "Book Inspection",
-    ctaHref: "/inspections",
+    ctaText: "Browse Certified Dealers",
+    ctaHref: "/dealers",
   },
   {
     key: "finance",

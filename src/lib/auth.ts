@@ -22,21 +22,25 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
     if (authError || !user?.email) return null;
 
     const serviceClient = createServiceRoleClient();
+
+    // 1. Strictly fetch profile by auth_user_id
     let { data } = await serviceClient
       .from('users')
-      .select('id, auth_user_id, name, email, role, status')
+      .select('id, auth_user_id, name, email, role, status, phone')
       .eq('auth_user_id', user.id)
       .maybeSingle();
 
+    // 2. Fallback: fetch by exact email
     if (!data && user.email) {
       const { data: byEmail } = await serviceClient
         .from('users')
-        .select('id, auth_user_id, name, email, role, status')
-        .ilike('email', user.email.trim())
+        .select('id, auth_user_id, name, email, role, status, phone')
+        .ilike('email', user.email)
         .maybeSingle();
 
       if (byEmail) {
         data = byEmail;
+        // Link auth_user_id if missing to fix future lookups
         if (!byEmail.auth_user_id) {
           await serviceClient
             .from('users')
@@ -46,27 +50,16 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
       }
     }
 
-    if (data) {
-      const metaRole = user.user_metadata?.role;
-      const adminRoles = ['admin', 'content_manager', 'inspection_manager'];
-      if (metaRole && adminRoles.includes(metaRole) && !adminRoles.includes(data.role)) {
-        await serviceClient
-          .from('users')
-          .update({ role: metaRole })
-          .eq('id', data.id);
-        data.role = metaRole;
-      }
-      return data as SessionUser;
+    // 3. No profile found — deny session
+    if (!data) return null;
+
+    // 4. Strictly enforce suspension
+    if (data.status === 'suspended') {
+      await supabase.auth.signOut();
+      return null;
     }
 
-    return {
-      id: user.id,
-      auth_user_id: user.id,
-      name: user.user_metadata?.name || user.email.split('@')[0],
-      email: user.email,
-      role: user.user_metadata?.role || 'buyer',
-      status: 'active',
-    };
+    return data as SessionUser;
   } catch (err) {
     console.error('getSession error:', err);
     return null;
@@ -84,7 +77,7 @@ export async function refreshSession(): Promise<boolean> {
   }
 }
 
-const ADMIN_ROLES = ['admin', 'content_manager', 'inspection_manager'] as const;
+const ADMIN_ROLES = ['admin'] as const;
 
 export function isAdminRole(role: string): boolean {
   return (ADMIN_ROLES as readonly string[]).includes(role);

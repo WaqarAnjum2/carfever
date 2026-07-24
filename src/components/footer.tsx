@@ -28,25 +28,20 @@ const YoutubeIcon = () => (
 
 const footerLinks = {
   "Buy & Sell": [
-    { label: "Used Cars", href: "/buy-car" },
-    { label: "New Cars", href: "/buy-car" },
+    { label: "Used Cars", href: "/buy-car?condition=used" },
+    { label: "New Cars", href: "/buy-car?condition=new" },
     { label: "Sell Your Car", href: "/sell-car" },
-    { label: "Car Financing", href: "#" },
-    { label: "Car Insurance", href: "/insurance" },
+    { label: "Certified Dealers", href: "/dealers" },
   ],
   Explore: [
-    { label: "Car Reviews", href: "/reviews" },
-    { label: "Car Comparisons", href: "/compare" },
-    { label: "Price Calculator", href: "/calculator" },
-    { label: "Car Inspection", href: "/inspection" },
-    { label: "Blog", href: "/blog" },
+    { label: "Browse Vehicles", href: "/buy-car" },
+    { label: "Post Free Ad", href: "/sell-car" },
+    { label: "Dealer Network", href: "/dealers" },
   ],
   Company: [
     { label: "About Us", href: "/about" },
-    { label: "Register", href: "/register" },
-    { label: "Become a Dealer", href: "/become-dealer" },
-    { label: "Careers", href: "/careers" },
-    { label: "Contact", href: "/contact" },
+    { label: "Register Account", href: "/register" },
+    { label: "Sign In", href: "/login" },
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
   ],
@@ -81,9 +76,8 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-xs sm:text-sm text-gray-600 max-w-sm mb-6 leading-relaxed">
-              Pakistan&apos;s most trusted automotive marketplace. Find your dream
-              car with verified listings, professional inspections, and
-              transparent pricing.
+              UK&apos;s most trusted automotive marketplace. Find your dream
+              car with verified seller listings and transparent pricing.
             </p>
 
             {/* Contact Info */}

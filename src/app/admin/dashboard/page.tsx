@@ -18,10 +18,10 @@ import Link from 'next/link';
 import { getAdminDashboardStats } from '@/lib/admin-actions';
 
 const quickLinks = [
-  { label: "Add New Car",    href: "/admin/cars",        icon: Car,          color: "#0055FE" },
-  { label: "Write Blog",     href: "/admin/blogs",       icon: FileText,     color: "#059669" },
-  { label: "Inspections",    href: "/admin/inspections",  icon: ShieldCheck,  color: "#D97706" },
-  { label: "View Inquiries", href: "/admin/inquiries",   icon: MessageSquare,color: "#7C3AED" },
+  { label: "Add New Car",            href: "/admin/cars",          icon: Car,          color: "#0055FE" },
+  { label: "Manage Users & Dealers", href: "/admin/users",         icon: Users,        color: "#059669" },
+  { label: "Dealer Requests",        href: "/admin/registrations", icon: Users,        color: "#D97706" },
+  { label: "Site Settings",          href: "/admin/settings",      icon: Eye,          color: "#7C3AED" },
 ];
 
 const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -77,9 +77,6 @@ export default function AdminDashboard() {
     { label: "Total Views",    value: loading ? "…" : stats.views.toLocaleString(),       icon: Eye,          trend: "Live",   up: true,  color: "#0055FE", bg: "bg-blue-50 text-[#0055FE]" },
     { label: "Car Listings",   value: loading ? "…" : stats.cars.toLocaleString(),        icon: Car,          trend: "Live",   up: true,  color: "#EA580C", bg: "bg-orange-50 text-orange-600" },
     { label: "Active Users",   value: loading ? "…" : stats.users.toLocaleString(),       icon: Users,        trend: "Live",   up: true,  color: "#7C3AED", bg: "bg-purple-50 text-purple-600" },
-    { label: "Blog Posts",     value: loading ? "…" : stats.blogs.toLocaleString(),       icon: FileText,     trend: "Live",   up: true,  color: "#059669", bg: "bg-emerald-50 text-emerald-600" },
-    { label: "Inspections",    value: loading ? "…" : stats.inspections.toLocaleString(), icon: ShieldCheck,  trend: "Live",   up: true,  color: "#D97706", bg: "bg-amber-50 text-amber-600" },
-    { label: "Inquiries",      value: loading ? "…" : stats.inquiries.toLocaleString(),   icon: MessageSquare,trend: "Live",   up: true,  color: "#E11D48", bg: "bg-rose-50 text-rose-600" },
   ];
 
   const currentMonthIdx = new Date().getMonth();
@@ -103,33 +100,6 @@ export default function AdminDashboard() {
         <p className="text-xs font-semibold text-slate-500 mt-1">
           Welcome back! Here is what&apos;s happening across your platform today.
         </p>
-      </div>
-
-      {/* Inspection Portal Hero Banner */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-300/60 rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
-            <ShieldCheck className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-extrabold text-slate-900">Vehicle Inspection Portal</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                Live Verification Hub
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 mt-1 max-w-xl">
-              Manage physical doorstep inspection requests, update vehicle verification status, and log official inspector rating notes for certified seller listings.
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/admin/inspections"
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all duration-200 shrink-0 w-full sm:w-auto"
-        >
-          <span>Open Inspection Portal</span>
-          <ArrowUpRight className="w-4 h-4" />
-        </Link>
       </div>
 
       {/* Stat Cards Grid */}
