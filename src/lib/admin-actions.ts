@@ -914,15 +914,19 @@ export async function getAdminDashboardStats() {
   const [
     { count: cars },
     { count: users },
+    { count: pendingReqs },
     { data: carsViews },
     { data: recentCars },
     { data: recentUsers },
+    { data: recentReqs },
   ] = await Promise.all([
     supabase.from('cars').select('*', { count: 'exact', head: true }),
     supabase.from('users').select('*', { count: 'exact', head: true }),
+    supabase.from('registration_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('cars').select('views_count, created_at'),
     supabase.from('cars').select('id, title, model, created_at').order('created_at', { ascending: false }).limit(5),
     supabase.from('users').select('id, name, role, created_at').order('created_at', { ascending: false }).limit(5),
+    supabase.from('registration_requests').select('id, name, role, created_at').eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
   ]);
 
   const totalViews = (carsViews || []).reduce((sum: number, c: any) => sum + (c.views_count || 0), 0);
@@ -934,25 +938,30 @@ export async function getAdminDashboardStats() {
   }));
 
   const userActivities = (recentUsers || []).map((u: any) => ({
-    title: 'User Registered',
-    desc: `${u.name || 'User'} (${u.role || 'user'})`,
+    title: 'User Account Created',
+    desc: `${u.name || 'User'} (${u.role === 'seller' ? 'Dealer' : u.role || 'User'})`,
     createdAt: u.created_at,
   }));
 
-  const allActivities = [...carActivities, ...userActivities]
+  const reqActivities = (recentReqs || []).map((r: any) => ({
+    title: 'Dealer Application Received',
+    desc: `${r.name || 'Applicant'} requested dealership access`,
+    createdAt: r.created_at,
+  }));
+
+  const allActivities = [...carActivities, ...userActivities, ...reqActivities]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 6);
+    .slice(0, 7);
 
   return {
     cars: cars || 0,
-    blogs: 0,
     users: users || 0,
+    pendingRequests: pendingReqs || 0,
     views: totalViews,
-    inspections: 0,
-    inquiries: 0,
     activities: allActivities,
   };
 }
+
 
 export interface PaginatedResult<T> {
   data: T[];

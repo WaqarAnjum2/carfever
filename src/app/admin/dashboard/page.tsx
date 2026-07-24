@@ -20,7 +20,8 @@ import { getAdminDashboardStats } from '@/lib/admin-actions';
 const quickLinks = [
   { label: "Add New Car",            href: "/admin/cars",          icon: Car,          color: "#0055FE" },
   { label: "Manage Users & Dealers", href: "/admin/users",         icon: Users,        color: "#059669" },
-  { label: "Dealer Requests",        href: "/admin/registrations", icon: Users,        color: "#D97706" },
+  { label: "Dealer Requests",        href: "/admin/users?tab=requests", icon: Users,    color: "#D97706" },
+
   { label: "Site Settings",          href: "/admin/settings",      icon: Eye,          color: "#7C3AED" },
 ];
 
@@ -47,11 +48,9 @@ interface ActivityItem {
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     cars: 0,
-    blogs: 0,
     users: 0,
+    pendingRequests: 0,
     views: 0,
-    inspections: 0,
-    inquiries: 0,
     activities: [] as ActivityItem[],
   });
   const [loading, setLoading] = useState(true);
@@ -64,7 +63,7 @@ export default function AdminDashboard() {
     async function load() {
       try {
         const data = await getAdminDashboardStats();
-        if (data) setStats(data);
+        if (data) setStats(data as any);
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
       }
@@ -74,10 +73,12 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: "Total Views",    value: loading ? "…" : stats.views.toLocaleString(),       icon: Eye,          trend: "Live",   up: true,  color: "#0055FE", bg: "bg-blue-50 text-[#0055FE]" },
-    { label: "Car Listings",   value: loading ? "…" : stats.cars.toLocaleString(),        icon: Car,          trend: "Live",   up: true,  color: "#EA580C", bg: "bg-orange-50 text-orange-600" },
-    { label: "Active Users",   value: loading ? "…" : stats.users.toLocaleString(),       icon: Users,        trend: "Live",   up: true,  color: "#7C3AED", bg: "bg-purple-50 text-purple-600" },
+    { label: "Total Views",              value: loading ? "…" : stats.views.toLocaleString(),           icon: Eye,          trend: "Live",   color: "#0055FE", bg: "bg-blue-50 text-[#0055FE]" },
+    { label: "Vehicle Listings",         value: loading ? "…" : stats.cars.toLocaleString(),            icon: Car,          trend: "Live",   color: "#EA580C", bg: "bg-orange-50 text-orange-600" },
+    { label: "User & Dealer Accounts",    value: loading ? "…" : stats.users.toLocaleString(),           icon: Users,        trend: "Live",   color: "#7C3AED", bg: "bg-purple-50 text-purple-600" },
+    { label: "Pending Dealer Reqs",      value: loading ? "…" : stats.pendingRequests.toLocaleString(), icon: ShieldCheck,  trend: "Action Required", color: "#D97706", bg: "bg-amber-50 text-amber-600" },
   ];
+
 
   const currentMonthIdx = new Date().getMonth();
   const chartMonths = Array.from({ length: 6 }, (_, i) => {
@@ -103,7 +104,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
