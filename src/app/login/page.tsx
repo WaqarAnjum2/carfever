@@ -40,8 +40,8 @@ export default function LoginPage() {
         setError("Too many requests. Please wait a moment before trying again.");
       } else if (errParam === "unauthorized") {
         setError("Please sign in to continue to your account.");
-      } else if (errParam === "suspended") {
-        setError("Your account has been suspended. Please contact the administrator for assistance.");
+      } else if (errParam === "suspended" || errParam === "blocked") {
+        setError("BLOCKED: Your account has been blocked by an administrator. Please contact support for assistance.");
       }
     }
 
@@ -98,6 +98,8 @@ export default function LoginPage() {
       const msg = err?.message || "";
       if (msg.includes("Failed to fetch") || msg.includes("fetch failed")) {
         setError("Network connection issue. Please check your internet connection or reload the page.");
+      } else if (msg.toLowerCase().includes("suspended") || msg.toLowerCase().includes("blocked")) {
+        setError("BLOCKED: " + msg);
       } else {
         setError(msg || "Invalid email or password. Please try again.");
       }
@@ -227,12 +229,25 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Error Banner */}
+          {/* Error / Blocked Banner */}
           {error && (
-            <div className="flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-xs text-rose-700 animate-in fade-in slide-in-from-top-2 duration-200">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span className="font-medium">{error}</span>
-            </div>
+            error.startsWith("BLOCKED:") ? (
+              <div className="flex items-start gap-3 bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+                  <Lock className="w-4 h-4 text-rose-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-rose-700 uppercase tracking-wider mb-0.5">Account Blocked</p>
+                  <p className="text-xs text-rose-600 font-medium">{error.replace("BLOCKED: ", "")}</p>
+                  <p className="text-[11px] text-rose-500 mt-1">Contact us at <span className="font-bold">support@carfever.co.uk</span></p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-xs text-rose-700 animate-in fade-in slide-in-from-top-2 duration-200">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span className="font-medium">{error}</span>
+              </div>
+            )
           )}
 
           {/* Form */}

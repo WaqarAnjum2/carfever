@@ -22,51 +22,121 @@ import { uploadImage } from "@/lib/admin-actions";
 import { convertMultipleToWebP } from "@/lib/image-utils";
 
 const POPULAR_BRANDS = [
+  "Ford",
+  "Vauxhall",
+  "Volkswagen",
+  "BMW",
+  "Mercedes-Benz",
+  "Audi",
   "Toyota",
   "Honda",
-  "Suzuki",
-  "KIA",
-  "Hyundai",
-  "Changan",
-  "MG",
-  "Haval",
   "Nissan",
-  "Mercedes-Benz",
-  "BMW",
-  "Audi",
+  "Hyundai",
+  "Kia",
+  "SEAT",
+  "Peugeot",
+  "Renault",
+  "Skoda",
+  "Land Rover",
+  "Jaguar",
+  "MINI",
+  "Volvo",
+  "Tesla",
+  "MG",
+  "Fiat",
+  "Mazda",
+  "Mitsubishi",
+  "Subaru",
+  "Porsche",
+  "Lexus",
   "Other (Type Custom)",
 ];
 
 const BRAND_MODELS: Record<string, string[]> = {
-  Toyota: ["Corolla", "Yaris", "Fortuner", "Hilux", "Prado", "Land Cruiser", "Vitz", "Passo", "Camry", "Other"],
-  Honda: ["Civic", "City", "HR-V", "BR-V", "Vezel", "CR-V", "Accord", "N-One", "Other"],
-  Suzuki: ["Alto", "Cultus", "Wagon R", "Swift", "Bolan", "Mehran", "Every", "Jimny", "Other"],
-  KIA: ["Sportage", "Stonic", "Sorento", "Grand Carnival", "Picanto", "Other"],
-  Hyundai: ["Tucson", "Elantra", "Sonata", "Santa Fe", "Grand i10", "Other"],
-  Changan: ["Alsvin", "Oshan X7", "Karvaan", "M9", "Other"],
-  MG: ["HS", "ZS", "GT", "ZS EV", "Other"],
-  Haval: ["H6", "Jolion", "H6 HEV", "Other"],
-  Nissan: ["Dayz", "Kicks", "Patrol", "Sunny", "Note", "Other"],
-  "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLE", "GLC", "Other"],
-  BMW: ["3 Series", "5 Series", "7 Series", "X3", "X5", "Other"],
-  Audi: ["A4", "A6", "Q3", "Q5", "e-tron", "Other"],
+  Ford: ["Fiesta", "Focus", "Puma", "Kuga", "EcoSport", "Mustang", "Ranger", "Transit", "Galaxy", "Other"],
+  Vauxhall: ["Corsa", "Astra", "Mokka", "Crossland", "Grandland", "Insignia", "Zafira", "Other"],
+  Volkswagen: ["Golf", "Polo", "Tiguan", "Passat", "T-Roc", "ID.3", "ID.4", "Touareg", "Transporter", "Other"],
+  BMW: ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "7 Series", "X1", "X3", "X5", "iX", "Other"],
+  "Mercedes-Benz": ["A-Class", "B-Class", "C-Class", "E-Class", "S-Class", "GLA", "GLC", "GLE", "EQC", "Other"],
+  Audi: ["A1", "A3", "A4", "A5", "A6", "Q2", "Q3", "Q5", "Q7", "e-tron", "Other"],
+  Toyota: ["Yaris", "Corolla", "Camry", "RAV4", "C-HR", "Prius", "Land Cruiser", "Hilux", "Other"],
+  Honda: ["Jazz", "Civic", "CR-V", "HR-V", "ZR-V", "Accord", "Other"],
+  Nissan: ["Micra", "Juke", "Qashqai", "X-Trail", "Leaf", "Navara", "Other"],
+  Hyundai: ["i10", "i20", "i30", "Tucson", "Santa Fe", "IONIQ 5", "Kona", "Other"],
+  Kia: ["Picanto", "Rio", "Ceed", "Sportage", "Niro", "Sorento", "EV6", "Other"],
+  SEAT: ["Ibiza", "Leon", "Arona", "Ateca", "Tarraco", "Other"],
+  Peugeot: ["208", "308", "2008", "3008", "5008", "e-208", "Other"],
+  Renault: ["Clio", "Megane", "Captur", "Kadjar", "Zoe", "Arkana", "Other"],
+  Skoda: ["Fabia", "Scala", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Other"],
+  "Land Rover": ["Defender", "Discovery", "Discovery Sport", "Freelander", "Range Rover", "Range Rover Sport", "Range Rover Evoque", "Range Rover Velar", "Other"],
+  Jaguar: ["E-Pace", "F-Pace", "I-Pace", "XE", "XF", "F-Type", "Other"],
+  MINI: ["Hatch", "Convertible", "Clubman", "Countryman", "Paceman", "Other"],
+  Volvo: ["S60", "S90", "V40", "V60", "V90", "XC40", "XC60", "XC90", "Other"],
+  Tesla: ["Model 3", "Model Y", "Model S", "Model X", "Other"],
+  MG: ["MG3", "MG5", "MG ZS", "MG ZS EV", "MG HS", "MG4", "Other"],
+  Fiat: ["500", "Panda", "Tipo", "500X", "Other"],
+  Mazda: ["Mazda2", "Mazda3", "Mazda6", "CX-3", "CX-5", "CX-60", "Other"],
+  Mitsubishi: ["Colt", "Eclipse Cross", "Outlander", "L200", "Other"],
+  Subaru: ["Impreza", "Forester", "Outback", "XV", "WRX", "Other"],
+  Porsche: ["Cayenne", "Macan", "Panamera", "911", "Taycan", "Other"],
+  Lexus: ["IS", "ES", "NX", "RX", "UX", "Other"],
 };
 
-const PAKISTAN_CITIES = [
-  "Lahore",
-  "Karachi",
-  "Islamabad",
-  "Rawalpindi",
-  "Faisalabad",
-  "Multan",
-  "Peshawar",
-  "Quetta",
-  "Sialkot",
-  "Gujranwala",
-  "Hyderabad",
-  "Abbottabad",
+
+const UK_CITIES = [
+  "London",
+  "Manchester",
+  "Birmingham",
+  "Leeds",
+  "Glasgow",
+  "Sheffield",
+  "Bradford",
+  "Edinburgh",
+  "Liverpool",
+  "Bristol",
+  "Cardiff",
+  "Coventry",
+  "Nottingham",
+  "Leicester",
+  "Newcastle upon Tyne",
+  "Belfast",
+  "Sunderland",
+  "Brighton",
+  "Hull",
+  "Wolverhampton",
+  "Plymouth",
+  "Derby",
+  "Southampton",
+  "Stoke-on-Trent",
+  "Salford",
+  "Aberdeen",
+  "Westminster",
+  "Portsmouth",
+  "York",
+  "Oxford",
+  "Cambridge",
+  "Reading",
+  "Luton",
+  "Preston",
+  "Blackpool",
+  "Bolton",
+  "Stockport",
+  "Middlesbrough",
+  "Swansea",
+  "Peterborough",
+  "Milton Keynes",
+  "Northampton",
+  "Warrington",
+  "Exeter",
+  "Bath",
+  "Gloucester",
+  "Cheltenham",
+  "Ipswich",
+  "Norwich",
+  "Dundee",
   "Other City",
 ];
+
 
 const EXTERIOR_COLORS = [
   { name: "White", hex: "#FFFFFF" },
@@ -780,7 +850,7 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
               <div>
                 <label className={labelClass}>
                   <span>City Location</span>
-                  <span className="text-[10px] text-[#0055FE] font-bold">Dropdown or Custom</span>
+                  <span className="text-[10px] text-[#0055FE] font-bold">Select or Type Custom</span>
                 </label>
                 <select
                   name="city"
@@ -788,58 +858,54 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
                   onChange={handleInputChange}
                   className={selectClass}
                 >
-                  <option value="" disabled>-- Select City --</option>
-                  {PAKISTAN_CITIES.map((c) => (
+                  <option value="" disabled>-- Select UK City --</option>
+                  {UK_CITIES.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>
                   ))}
                 </select>
 
-                {formData.city === "Other City" && (
-                  <div className="mt-3 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <input
-                      type="text"
-                      name="customCity"
-                      placeholder="Type custom city (e.g. Sargodha, Larkana, Mirpur)"
-                      value={formData.customCity}
-                      onChange={handleInputChange}
-                      className={inputClass}
-                    />
-                  </div>
-                )}
+                {/* Always show custom city input — pre-filled if dropdown selected, editable for custom */}
+                <div className="mt-3 animate-in fade-in duration-200">
+                  <input
+                    type="text"
+                    name="customCity"
+                    placeholder="Or type your city name (e.g. Slough, Watford, Swindon…)"
+                    value={formData.city === "Other City" ? formData.customCity : (formData.city && formData.city !== "Other City" ? "" : formData.customCity)}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, customCity: e.target.value, city: "Other City" }));
+                    }}
+                    className={inputClass}
+                  />
+                </div>
               </div>
 
               {/* Price */}
               <div>
                 <label className={labelClass}>
-                  <span>Asking Price (PKR or Lacs)</span>
+                  <span>Asking Price (GBP)</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute left-4 top-3.5 text-xs font-extrabold text-slate-400 pointer-events-none">
-                    PKR
+                  <div className="absolute left-4 top-3.5 text-sm font-extrabold text-slate-500 pointer-events-none">
+                    £
                   </div>
                   <input
                     type="number"
                     name="price"
                     min="0"
                     step="any"
-                    placeholder="e.g. 48.5 (Lacs) or 4850000 (Full PKR)"
+                    placeholder="e.g. 12500"
                     value={formData.price}
                     onKeyDown={handleKeyDownNumber}
                     onChange={handleInputChange}
-                    className={`${numberInputClass} pl-14`}
+                    className={`${numberInputClass} pl-10`}
                   />
                 </div>
                 {formData.price && !isNaN(parseFloat(formData.price)) && (
                   <p className="text-xs font-semibold text-[#0055FE] mt-1.5 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    Listing Price: PKR {
-                      (parseFloat(formData.price) < 10000
-                        ? parseFloat(formData.price) * 100000
-                        : parseFloat(formData.price)
-                      ).toLocaleString()
-                    }
+                    Listing Price: £{parseFloat(formData.price).toLocaleString("en-GB")}
                   </p>
                 )}
               </div>

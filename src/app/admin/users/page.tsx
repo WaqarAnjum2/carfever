@@ -1135,18 +1135,20 @@ export default function UsersPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setProfileUser(user)}
-                            className="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer text-[11px] font-bold"
                             title="View Account Details & Car Listings"
                           >
                             <Eye className="w-3.5 h-3.5" />
+                            <span>View</span>
                           </button>
 
                           <button
                             onClick={() => setResetUser(user)}
-                            className="p-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer text-[11px] font-bold"
                             title="Reset Password"
                           >
                             <KeyRound className="w-3.5 h-3.5" />
+                            <span>Reset PW</span>
                           </button>
 
                           <button
@@ -1158,7 +1160,7 @@ export default function UsersPage() {
                               handleToggleStatus(user);
                             }}
                             disabled={isToggling || isSelf}
-                            className={`p-2 rounded-xl border transition-all ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all text-[11px] font-bold ${
                               isSelf
                                 ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
                                 : user.status === 'active'
