@@ -126,29 +126,9 @@ export default function CarDetailsPage() {
 
   const formatPrice = (price: number, currency?: string | null) => {
     if (!price || isNaN(price)) return '£0';
-    const curr = currency || car?.currency || 'GBP';
-    if (curr === 'GBP' || curr === '£') {
-      return `£${price.toLocaleString('en-GB')}`;
-    }
-    if (curr === 'USD' || curr === '$') {
-      return `$${price.toLocaleString('en-US')}`;
-    }
-    if (curr === 'EUR' || curr === '€') {
-      return `€${price.toLocaleString('en-IE')}`;
-    }
-    let p = price;
-    while (p >= 1000000000) {
-      p = p / 100000;
-    }
-    if (p >= 10000000) {
-      return `${curr} ${(p / 10000000).toFixed(2)} Crore`;
-    }
-    if (p >= 100000) {
-      const lacs = (p / 100000).toFixed(2);
-      return `${curr} ${lacs} Lac`;
-    }
-    return `${curr} ${p.toLocaleString()}`;
+    return `£${price.toLocaleString('en-GB')}`;
   };
+
 
   const featuresList: string[] = (() => {
     const f = (car as any).features;
@@ -634,17 +614,18 @@ export default function CarDetailsPage() {
                       <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider block mb-2">Phone (Optional)</label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input value={offerForm.phone} onChange={e => setOfferForm(p => ({ ...p, phone: e.target.value }))} placeholder="+92 300 1234567" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0055FE] text-sm" />
+                        <input value={offerForm.phone} onChange={e => setOfferForm(p => ({ ...p, phone: e.target.value }))} placeholder="07911 123456" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0055FE] text-sm" />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider block mb-2">Your Offer (PKR) *</label>
+                      <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider block mb-2">Your Offer (£ GBP) *</label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input value={offerForm.offerPrice} onChange={e => setOfferForm(p => ({ ...p, offerPrice: e.target.value }))} placeholder="e.g. 43 Lacs" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0055FE] text-sm" />
+                        <input value={offerForm.offerPrice} onChange={e => setOfferForm(p => ({ ...p, offerPrice: e.target.value }))} placeholder="e.g. £12,500" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0055FE] text-sm" />
                       </div>
                     </div>
                   </div>
+
                   <div>
                     <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider block mb-2">Note (Optional)</label>
                     <div className="relative">

@@ -46,8 +46,9 @@ export default function EditCarPage() {
     description: '',
     status: 'approved',
     city: '',
-    currency: 'PKR',
+    currency: 'GBP',
   });
+
 
   useEffect(() => {
     if (id) {
@@ -212,9 +213,10 @@ export default function EditCarPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-xs font-bold text-slate-700">Price (PKR / USD) <span className="text-rose-500">*</span></Label>
-              <Input id="price" name="price" type="number" required value={formData.price} onChange={handleChange} className="bg-slate-50/50 border-slate-200 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:border-[#0055FE] focus:ring-1 focus:ring-[#0055FE]" placeholder="e.g. 185000" />
+              <Label htmlFor="price" className="text-xs font-bold text-slate-700">Price (GBP £) <span className="text-rose-500">*</span></Label>
+              <Input id="price" name="price" type="number" required value={formData.price} onChange={handleChange} className="bg-slate-50/50 border-slate-200 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:border-[#0055FE] focus:ring-1 focus:ring-[#0055FE]" placeholder="e.g. 18500" />
             </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="make" className="text-xs font-bold text-slate-700">Make / Brand <span className="text-rose-500">*</span></Label>

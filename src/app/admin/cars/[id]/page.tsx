@@ -55,20 +55,10 @@ const CAR_FEATURES_LIST = [
 
 
 function formatPricePKR(price?: number): string {
-  if (!price || isNaN(price)) return 'PKR 0';
-  let p = price;
-  while (p >= 1000000000) {
-    p = p / 100000;
-  }
-  if (p >= 10000000) {
-    const crore = (p / 10000000).toFixed(2);
-    return `PKR ${crore} Crore`;
-  } else if (p >= 100000) {
-    const lacs = (p / 100000).toFixed(2);
-    return `PKR ${lacs} Lac`;
-  }
-  return `PKR ${p.toLocaleString()}`;
+  if (!price || isNaN(price)) return '£0';
+  return `£${price.toLocaleString('en-GB')}`;
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; dot: string; label: string }> = {
@@ -559,7 +549,7 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
               </div>
 
               <div>
-                <label className={labelClass}>Price (PKR)</label>
+                <label className={labelClass}>Price (GBP £)</label>
                 <input
                   type="number"
                   name="price"
@@ -568,10 +558,11 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
                   onKeyDown={handleKeyDownNumber}
                   onChange={handleFormChange}
                   required
-                  placeholder="e.g. 3500000"
+                  placeholder="e.g. 18500"
                   className={inputClass}
                 />
               </div>
+
 
               <div>
                 <label className={labelClass}>Mileage (KM)</label>
