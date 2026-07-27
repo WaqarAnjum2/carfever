@@ -32,7 +32,7 @@ export function HeroSection() {
   const [showCities, setShowCities] = useState(false);
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-32 lg:pt-0 bg-[#F8F9FA]">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-36 lg:pt-28 bg-[#F8F9FA]">
       {/* Background Layers */}
       <div className="absolute inset-0">
         {/* Sports Car Background (Subtle) */}
