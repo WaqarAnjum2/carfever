@@ -49,11 +49,12 @@ export const metadata: Metadata = {
     "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace. New & used cars, expert inspections, dealer comparisons, and certified UK model cards.",
   icons: {
     icon: [
+      { url: "/carfever-logo.webp", type: "image/webp" },
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/icon.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/favicon.svg",
-    apple: "/icon.svg",
+    shortcut: "/carfever-logo.webp",
+    apple: "/carfever-logo.webp",
   },
   keywords: [
     "car marketplace UK",

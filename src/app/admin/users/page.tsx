@@ -47,6 +47,7 @@ import {
   fetchUserDetailWithCars,
   approveCar,
   rejectCar,
+  deleteUserCascade,
 } from '@/lib/admin-actions';
 import {
   approveRegistrationRequest,
@@ -567,6 +568,125 @@ function ResetPasswordModal({
   );
 }
 
+function DeleteUserCascadeModal({
+  user,
+  onClose,
+  onSuccess,
+}: {
+  user: DbUser;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [confirmInput, setConfirmInput] = useState('');
+
+  const handleDelete = async () => {
+    if (confirmInput.toUpperCase() !== 'DELETE') {
+      toast.error('Please type DELETE in capital letters to confirm.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await deleteUserCascade(user.id);
+      toast.success(`User ${user.name} (${user.email}) and all associated car listings deleted successfully!`);
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      toast.error(`Failed to delete user: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+      <div className="bg-white border border-rose-200 rounded-3xl max-w-md w-full shadow-2xl p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 shadow-sm">
+            <Trash2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900">Permanently Delete User Account?</h3>
+            <p className="text-[11px] text-rose-600 font-bold uppercase tracking-wider">Irreversible Database Cascade Action</p>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-100 space-y-2 mb-4 text-xs">
+          <div className="flex justify-between">
+            <span className="text-slate-500 font-bold">User Name:</span>
+            <span className="font-extrabold text-slate-900">{user.name}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500 font-bold">Email Address:</span>
+            <span className="font-extrabold text-slate-900">{user.email}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500 font-bold">Account Role:</span>
+            <span className="font-extrabold text-purple-700 capitalize">{user.role}</span>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2 text-xs text-slate-600 mb-5">
+          <p className="font-bold text-slate-900">What will be permanently deleted:</p>
+          <ul className="space-y-1 text-[11px] list-disc list-inside text-rose-600 font-medium">
+            <li>User profile record from <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-800 font-mono">public.users</code></li>
+            <li>Authentication user account from Supabase <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-800 font-mono">auth.users</code></li>
+            <li>All car listings & photos owned by this seller/user</li>
+            <li>Any pending registration applications for this email</li>
+          </ul>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-xs font-bold text-slate-700">
+            Type <span className="text-rose-600 font-black">DELETE</span> to confirm permanent deletion:
+          </label>
+          <input
+            type="text"
+            value={confirmInput}
+            onChange={(e) => setConfirmInput(e.target.value)}
+            placeholder="Type DELETE"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
+          />
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={loading || confirmInput.toUpperCase() !== 'DELETE'}
+              className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-all shadow-md shadow-rose-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Deleting…</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete User & All Cars</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────
    Main Unified User & Dealer Hub Page
 ───────────────────────────────────────────────────────────── */
@@ -587,6 +707,7 @@ export default function UsersPage() {
   const [togglingId,  setTogglingId]  = useState<string | null>(null);
   const [profileUser, setProfileUser] = useState<DbUser | null>(null);
   const [resetUser,   setResetUser]   = useState<DbUser | null>(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState<DbUser | null>(null);
   const [currentAdmin, setCurrentAdmin] = useState<any>(null);
 
   // Request Modals
@@ -1214,6 +1335,26 @@ export default function UsersPage() {
                               <UserCheck className="w-3.5 h-3.5" />
                             )}
                           </button>
+
+                          <button
+                            onClick={() => {
+                              if (isSelf) {
+                                toast.info('You cannot delete your own active admin account.');
+                                return;
+                              }
+                              setDeleteUserTarget(user);
+                            }}
+                            disabled={isSelf}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all text-[11px] font-bold ${
+                              isSelf
+                                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
+                                : 'bg-rose-600 text-white border-rose-600 hover:bg-rose-700 shadow-xs cursor-pointer'
+                            }`}
+                            title={isSelf ? 'You cannot delete your own account' : 'Permanently Delete User & All Cars'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1510,6 +1651,15 @@ export default function UsersPage() {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Delete User Cascade Modal */}
+      {deleteUserTarget && (
+        <DeleteUserCascadeModal
+          user={deleteUserTarget}
+          onClose={() => setDeleteUserTarget(null)}
+          onSuccess={fetchUsers}
+        />
       )}
     </div>
   );

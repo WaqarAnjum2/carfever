@@ -176,19 +176,6 @@ export async function fetchApprovedCars(
 
     let { data, error, count } = await initialQuery;
 
-    // Fallback: If no approved cars found, query all cars regardless of status
-    if (!data || data.length === 0) {
-      let fallbackQuery = supabase.from('cars').select(baseFields, { count: 'exact' });
-      fallbackQuery = applyFiltersAndSort(fallbackQuery);
-      fallbackQuery = fallbackQuery.range(offset, offset + limit - 1);
-      const res = await fallbackQuery;
-      if (res.data && res.data.length > 0) {
-        data = res.data;
-        count = res.count;
-        error = null;
-      }
-    }
-
     if (error) {
       console.error('fetchApprovedCars error:', error.message);
       return { cars: [], total: 0, page, totalPages: 0 };
@@ -281,7 +268,8 @@ export async function submitCarListing(formData: {
       images: imageUrls,
       image_url: imageUrls[0],
       features: parsed.features || [],
-      status: 'approved',
+      status: 'pending',
+      is_approved: false,
       seller_name: parsed.sellerName || session?.name || null,
       seller_phone: parsed.sellerPhone || session?.phone || null,
       seller_id: sellerId,

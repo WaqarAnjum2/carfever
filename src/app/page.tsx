@@ -42,7 +42,7 @@ export default async function HomePage() {
       .limit(8),
   ]);
 
-  // Fallback 1: if no featured cars, show latest approved cars
+  // Fallback: if no featured cars, show latest approved cars
   if (!featuredCars || featuredCars.length === 0) {
     const { data: fallback } = await supabase
       .from("cars")
@@ -51,25 +51,6 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(6);
     featuredCars = fallback;
-  }
-
-  // Fallback 2: if still no cars, fetch latest cars regardless of status
-  if (!featuredCars || featuredCars.length === 0) {
-    const { data: fallbackAll } = await supabase
-      .from("cars")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(6);
-    featuredCars = fallbackAll;
-  }
-
-  if (!recentCars || recentCars.length === 0) {
-    const { data: fallbackRecent } = await supabase
-      .from("cars")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(8);
-    recentCars = fallbackRecent;
   }
 
   const featured = (featuredCars ?? []).map(mapDbCarToHomeCard);

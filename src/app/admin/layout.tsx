@@ -26,8 +26,9 @@ import {
   Menu,
 } from "lucide-react";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
-import { getAdminInitialData, logoutAdmin } from "@/lib/admin-actions";
+import { getAdminInitialData, logoutAdmin, getPendingCarsCount } from "@/lib/admin-actions";
 import { createClient } from "@/lib/supabase/client";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 
 interface MenuItem {
   label: string;
@@ -38,6 +39,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: "Dashboard",         href: "/admin/dashboard",    icon: LayoutDashboard, roles: ["admin", "seller", "buyer"] },
+  { label: "Pending Approvals", href: "/admin/approvals",    icon: ShieldCheck,     roles: ["admin"] },
   { label: "Manage Cars",       href: "/admin/cars",         icon: Car,             roles: ["admin", "seller"] },
   { label: "User & Dealer Hub", href: "/admin/users",        icon: Users,           roles: ["admin"] },
   { label: "Site Settings",     href: "/admin/settings",     icon: Settings,        roles: ["admin"] },
@@ -58,6 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [profileOpen,        setProfileOpen]        = useState(false);
   const [sidebarOpen,        setSidebarOpen]        = useState(false);
   const [newRegistrationsCount, setNewRegistrationsCount] = useState(0);
+  const [pendingCarsCount, setPendingCarsCount] = useState(0);
   const { newListingsCount, newInquiriesCount, clearCounts } = useRealtimeNotifications();
 
   const userRole: string = adminUser?.role || '';
@@ -103,6 +106,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setAdminUser(res.profile);
         setIsAuthenticated(true);
         setNewRegistrationsCount(res.pendingRegistrations);
+
+        getPendingCarsCount().then((cnt) => setPendingCarsCount(cnt)).catch(() => {});
       } catch (err: any) {
         if (err?.message?.includes("suspended")) {
           await logoutAdmin();
@@ -187,30 +192,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* ── DESKTOP SIDEBAR ── */}
       <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 flex-col z-50 shadow-sm">
         
-        {/* Brand Header */}
-        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#0055FE] flex items-center justify-center text-white shadow-md shadow-blue-500/20 flex-shrink-0">
-            <Car className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-base font-extrabold text-slate-900 leading-none">
-              Car<span className="text-[#0055FE]">Fever</span>
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-1">
-              Admin Console
+        {/* Brand Header: Logo + Animated User Name */}
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-gradient-to-r from-slate-50/80 to-white">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AnimatedLogo size="md" showText={false} href="/admin" />
+            <div className="flex flex-col min-w-0">
+              <div className="text-xs font-extrabold text-slate-900 truncate tracking-tight flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="bg-gradient-to-r from-[#0055FE] via-blue-600 to-indigo-700 bg-clip-text text-transparent animate-pulse font-black truncate">
+                  {adminUser?.name || "Admin"}
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-bold tracking-wider uppercase block truncate">
+                Admin Console
+              </span>
             </div>
           </div>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-3.5 space-y-1 overflow-y-auto">
           {allowedMenus.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            const isApprovalsItem = item.href === "/admin/approvals";
             const isRegistrationsItem = item.href === "/admin/registrations";
             const isCarsItem = item.href === "/admin/cars";
             const isInquiriesItem = item.href === "/admin/inquiries";
-            const count = isRegistrationsItem
+            const count = isApprovalsItem
+              ? pendingCarsCount
+              : isRegistrationsItem
               ? newRegistrationsCount
               : isCarsItem
               ? newListingsCount
@@ -228,7 +239,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   active
-                    ? "bg-blue-50/80 text-[#0055FE] border-l-4 border-[#0055FE] shadow-xs"
+                    ? "bg-blue-50/90 text-[#0055FE] border-l-4 border-[#0055FE] shadow-xs"
                     : "text-slate-600 hover:bg-slate-100/70 hover:text-slate-900"
                 }`}
               >
@@ -267,13 +278,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* ── MOBILE SIDEBAR DRAWER ── */}
       {sidebarOpen && (
         <aside className="fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 flex flex-col z-50 lg:hidden shadow-2xl">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <div className="text-base font-extrabold text-slate-900">
-              Car<span className="text-[#0055FE]">Fever</span> Admin
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-gradient-to-r from-slate-50/80 to-white">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <AnimatedLogo size="md" showText={false} href="/admin" />
+              <div className="flex flex-col min-w-0">
+                <div className="text-xs font-extrabold text-slate-900 truncate tracking-tight flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="bg-gradient-to-r from-[#0055FE] via-blue-600 to-indigo-700 bg-clip-text text-transparent animate-pulse font-black truncate">
+                    {adminUser?.name || "Admin"}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-bold tracking-wider uppercase block truncate">
+                  Admin Console
+                </span>
+              </div>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1 rounded-xl text-slate-400 hover:bg-slate-100"
+              className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 shrink-0 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -364,33 +386,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add Car</span>
             </Link>
-
-            {/* Quick Action: New Blog */}
-            <Link
-              href="/admin/blogs"
-              prefetch={false}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
-            >
-              <FileText className="w-3.5 h-3.5 text-emerald-600" />
-              <span>New Blog</span>
-            </Link>
-
-            <div className="w-px h-6 bg-slate-200" />
-
-            {/* Notifications */}
-            <button
-              onClick={() => clearCounts()}
-              className="relative p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
-            >
-              <Bell className="w-4 h-4" />
-              {(newListingsCount + newInquiriesCount) > 0 && (
-                <span className="absolute top-1 right-1 bg-rose-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
-                  {newListingsCount + newInquiriesCount}
-                </span>
-              )}
-            </button>
-
-            <div className="w-px h-6 bg-slate-200" />
 
             {/* User Profile Menu */}
             <div className="relative">

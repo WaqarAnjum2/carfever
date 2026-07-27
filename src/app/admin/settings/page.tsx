@@ -23,6 +23,7 @@ import {
   Globe,
   MapPin,
   Clock,
+  Info,
   Sparkles,
   MessageCircle,
 } from 'lucide-react';
@@ -47,6 +48,15 @@ const SETTING_KEYS = [
   'city',
   'working_hours',
 
+  // About Us & Branding
+  'about_heading',
+  'about_description',
+  'about_mission',
+  'about_vision',
+  'about_stat_cars',
+  'about_stat_dealers',
+  'about_stat_inspections',
+
   // Social Media Links
   'social_facebook',
   'social_instagram',
@@ -60,27 +70,35 @@ type SettingKey = (typeof SETTING_KEYS)[number];
 type SettingsState = Record<SettingKey, string>;
 
 const DEFAULTS: SettingsState = {
-  site_name: 'Car Fever',
-  site_tagline: 'Pakistan\'s Premier Car Marketplace & Inspection Service',
+  site_name: 'CarFever',
+  site_tagline: 'UK\'s Premier Verified Automotive Marketplace',
   hero_title: 'Find, Inspect & Drive Your Dream Car With Confidence',
   hero_subtitle: 'Verified listings, 200+ point expert inspections, and seamless buying & selling.',
   cta_text: 'Explore Verified Cars',
-  announcement_banner: '🔥 Certified 200+ Point Car Inspection Services Now Live in Major Cities!',
-  footer_copyright: '© 2026 Car Fever Pakistan. All Rights Reserved.',
+  announcement_banner: '🔥 Certified 200+ Point Car Inspection Services Now Live in Bristol & Across the UK!',
+  footer_copyright: '© 2026 CarFever UK. All Rights Reserved.',
 
-  contact_email: 'support@carfever.pk',
-  contact_phone: '+92 300 1234567',
-  emergency_hotline: '+92 800 2273383',
-  business_address: 'Plaza #45, Main Boulevard, Gulberg III',
-  city: 'Lahore, Pakistan',
-  working_hours: 'Mon - Sat: 9:00 AM - 8:00 PM',
+  contact_email: 'info@carfever.uk',
+  contact_phone: '07507696334',
+  emergency_hotline: '07507696334',
+  business_address: 'Bristol, United Kingdom',
+  city: 'Bristol, UK',
+  working_hours: 'Mon - Sat: 9:00 AM - 7:00 PM GMT',
 
-  social_facebook: 'https://facebook.com/carfeverpk',
-  social_instagram: 'https://instagram.com/carfeverpk',
-  social_twitter: 'https://x.com/carfeverpk',
-  social_youtube: 'https://youtube.com/@carfeverpk',
-  social_linkedin: 'https://linkedin.com/company/carfeverpk',
-  whatsapp_number: '+923001234567',
+  about_heading: 'Driving Automotive Excellence & Unmatched Trust Across the UK',
+  about_description: 'CarFever is the UK\'s premier automotive marketplace, built to connect buyers and certified dealers with verified listings, 200+ point expert vehicle inspections, and complete pricing transparency.',
+  about_mission: 'To eliminate vehicle fraud and hidden defects by establishing an uncompromising standard for vehicle verification, seller trust, and seamless digital car buying.',
+  about_vision: 'To build the UK\'s most trusted automotive ecosystem where every car is certified, every listing is authentic, and every driver finds their dream vehicle with complete peace of mind.',
+  about_stat_cars: '12,500+',
+  about_stat_dealers: '650+',
+  about_stat_inspections: '25,000+',
+
+  social_facebook: 'https://facebook.com/carfever.uk',
+  social_instagram: 'https://instagram.com/carfever.uk',
+  social_twitter: 'https://x.com/carfever_uk',
+  social_youtube: 'https://youtube.com/@carfeveruk',
+  social_linkedin: 'https://linkedin.com/company/carfeveruk',
+  whatsapp_number: '07507696334',
 };
 
 const inputCls = "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0055FE] text-xs rounded-xl shadow-xs";
@@ -89,7 +107,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULTS);
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'contact' | 'social' | 'landing'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'about' | 'contact' | 'social' | 'landing'>('all');
 
   const loadSettings = useCallback(async () => {
     setFetching(true);
@@ -97,9 +115,18 @@ export default function AdminSettingsPage() {
       const data = await fetchAdminSettings();
       const loaded: SettingsState = { ...DEFAULTS };
       for (const key of SETTING_KEYS) {
-        if (data[key] !== undefined && data[key] !== null) {
+        if (data[key] !== undefined && data[key] !== null && String(data[key]).trim().length > 0) {
           loaded[key] = String(data[key]);
         }
+      }
+      if (loaded.contact_email.includes('.pk') || loaded.contact_email.includes('co.uk')) {
+        loaded.contact_email = 'info@carfever.uk';
+      }
+      if (loaded.contact_phone.includes('+92') || loaded.contact_phone.includes('1234567')) {
+        loaded.contact_phone = '07507696334';
+      }
+      if (loaded.business_address.includes('Plaza') || loaded.business_address.includes('Gulberg') || loaded.business_address.includes('Lahore')) {
+        loaded.business_address = 'Bristol, United Kingdom';
       }
       setSettings(loaded);
     } catch (err: any) {
@@ -172,6 +199,7 @@ export default function AdminSettingsPage() {
       <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
         {[
           { id: 'all', label: 'All Settings', icon: Globe },
+          { id: 'about', label: 'About Us Content', icon: Info },
           { id: 'contact', label: 'Contact & Location', icon: Phone },
           { id: 'social', label: 'Social Media', icon: Share2 },
           { id: 'landing', label: 'Landing Page & Branding', icon: Layout },
@@ -195,6 +223,175 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="grid gap-6">
+
+        {/* About Us Page Content Card */}
+        {(activeTab === 'all' || activeTab === 'about') && (
+          <Card className="bg-white border-slate-200/80 shadow-xs">
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0055FE] flex items-center justify-center">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div>
+                  <CardTitle className="text-slate-900 text-base font-bold">About Us Page & Brand Identity</CardTitle>
+                  <CardDescription className="text-xs font-medium text-slate-500">Edit the dynamic About Us page heading, mission statement, vision, and platform statistics.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4 pt-4">
+              {fetching ? (
+                <div className="space-y-3">
+                  <Skeleton /><Skeleton /><Skeleton />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="about_heading" className="text-xs font-bold text-slate-700">
+                      About Us Hero Heading
+                    </Label>
+                    <Input
+                      id="about_heading"
+                      value={settings.about_heading}
+                      onChange={handleChange('about_heading')}
+                      placeholder="Driving Automotive Excellence & Unmatched Trust..."
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="about_description" className="text-xs font-bold text-slate-700">
+                      Main About Us Overview Description
+                    </Label>
+                    <Textarea
+                      id="about_description"
+                      rows={3}
+                      value={settings.about_description}
+                      onChange={handleChange('about_description')}
+                      placeholder="CarFever is the UK's premier automotive marketplace..."
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="about_mission" className="text-xs font-bold text-slate-700">
+                        Our Mission Statement
+                      </Label>
+                      <Textarea
+                        id="about_mission"
+                        rows={3}
+                        value={settings.about_mission}
+                        onChange={handleChange('about_mission')}
+                        placeholder="To eliminate vehicle fraud and hidden defects..."
+                        className={inputCls}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="about_vision" className="text-xs font-bold text-slate-700">
+                        Our Vision Statement
+                      </Label>
+                      <Textarea
+                        id="about_vision"
+                        rows={3}
+                        value={settings.about_vision}
+                        onChange={handleChange('about_vision')}
+                        placeholder="To build the UK's most trusted automotive ecosystem..."
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="about_stat_cars" className="text-xs font-bold text-slate-700">
+                        Cars Stat (e.g. 12,500+)
+                      </Label>
+                      <Input
+                        id="about_stat_cars"
+                        value={settings.about_stat_cars}
+                        onChange={handleChange('about_stat_cars')}
+                        className={inputCls}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="about_stat_dealers" className="text-xs font-bold text-slate-700">
+                        Dealers Stat (e.g. 650+)
+                      </Label>
+                      <Input
+                        id="about_stat_dealers"
+                        value={settings.about_stat_dealers}
+                        onChange={handleChange('about_stat_dealers')}
+                        className={inputCls}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="about_stat_inspections" className="text-xs font-bold text-slate-700">
+                        Inspections Stat (e.g. 25,000+)
+                      </Label>
+                      <Input
+                        id="about_stat_inspections"
+                        value={settings.about_stat_inspections}
+                        onChange={handleChange('about_stat_inspections')}
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact Info Embedded inside About Us Card */}
+                  <div className="pt-3 border-t border-slate-100 space-y-3">
+                    <h5 className="text-xs font-extrabold text-[#0055FE] uppercase tracking-wider">
+                      Business Contact Information (Displayed on About Us Page)
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="about_contact_phone" className="text-xs font-bold text-slate-700">
+                          Direct Phone Line
+                        </Label>
+                        <Input
+                          id="about_contact_phone"
+                          value={settings.contact_phone}
+                          onChange={handleChange('contact_phone')}
+                          placeholder="07507696334"
+                          className={inputCls}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="about_contact_email" className="text-xs font-bold text-slate-700">
+                          Official Email
+                        </Label>
+                        <Input
+                          id="about_contact_email"
+                          value={settings.contact_email}
+                          onChange={handleChange('contact_email')}
+                          placeholder="info@carfever.uk"
+                          className={inputCls}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="about_business_address" className="text-xs font-bold text-slate-700">
+                          UK Headquarters Location
+                        </Label>
+                        <Input
+                          id="about_business_address"
+                          value={settings.business_address}
+                          onChange={handleChange('business_address')}
+                          placeholder="Bristol, United Kingdom"
+                          className={inputCls}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* 1. Contact & Location Details */}
         {(activeTab === 'all' || activeTab === 'contact') && (
@@ -227,7 +424,7 @@ export default function AdminSettingsPage() {
                       type="email"
                       value={settings.contact_email}
                       onChange={handleChange('contact_email')}
-                      placeholder="support@carfever.pk"
+                      placeholder="info@carfever.uk"
                       className={inputCls}
                     />
                   </div>

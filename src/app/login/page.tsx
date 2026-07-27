@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 import {
   Car,
   Lock,
@@ -149,19 +150,7 @@ export default function LoginPage() {
         
         {/* Top Header Logo */}
         <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Car className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-extrabold tracking-tight text-white leading-none">
-                Car<span className="text-blue-200">Fever</span>
-              </span>
-              <span className="text-[10px] text-blue-100/80 tracking-[0.2em] uppercase font-semibold mt-1">
-                Official Portal
-              </span>
-            </div>
-          </Link>
+          <AnimatedLogo variant="dark" size="lg" subtitle="Official Portal" href="/" />
         </div>
 
         {/* Center Hero Content */}
@@ -257,7 +246,7 @@ export default function LoginPage() {
                 <div>
                   <p className="text-xs font-extrabold text-rose-700 uppercase tracking-wider mb-0.5">Account Blocked</p>
                   <p className="text-xs text-rose-600 font-medium">{error.replace("BLOCKED: ", "")}</p>
-                  <p className="text-[11px] text-rose-500 mt-1">Contact us at <span className="font-bold">support@carfever.co.uk</span></p>
+                  <p className="text-[11px] text-rose-500 mt-1">Contact us at <span className="font-bold">info@carfever.uk</span></p>
                 </div>
               </div>
             ) : error.startsWith("NO_ACCOUNT:") ? (

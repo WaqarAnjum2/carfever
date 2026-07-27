@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { Car, Mail, Phone, MapPin } from "lucide-react";
 
 /* Inline SVG social icons since lucide-react doesn't include brand icons */
@@ -62,19 +63,9 @@ export function Footer() {
         <div className="py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
           {/* Brand Column */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left sm:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2.5 mb-4 sm:mb-5">
-              <div className="w-9 h-9 rounded-lg bg-[#0055FE] flex items-center justify-center">
-                <Car className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-gray-900 leading-none">
-                  Car<span className="text-[#0055FE]">Fever</span>
-                </span>
-                <span className="text-[10px] text-gray-500 tracking-[0.2em] uppercase leading-none mt-0.5">
-                  Marketplace
-                </span>
-              </div>
-            </Link>
+            <div className="mb-4 sm:mb-5">
+              <AnimatedLogo size="md" subtitle="Marketplace" href="/" />
+            </div>
             <p className="text-xs sm:text-sm text-gray-600 max-w-sm mb-6 leading-relaxed">
               UK&apos;s most trusted automotive marketplace. Find your dream
               car with verified seller listings and transparent pricing.
@@ -83,24 +74,24 @@ export function Footer() {
             {/* Contact Info */}
             <div className="flex flex-col items-center lg:items-start space-y-2.5">
               <a
-                href="tel:+921234567890"
+                href="tel:07507696334"
                 className="flex items-center gap-2.5 text-xs sm:text-sm text-gray-600 hover:text-[#0055FE] transition-colors min-h-[44px] sm:min-h-0"
                 suppressHydrationWarning
               >
                 <Phone className="w-4 h-4 text-[#0055FE]" />
-                +92 123 456 7890
+                07507696334
               </a>
               <a
-                href="mailto:info@carfever.pk"
+                href="mailto:info@carfever.uk"
                 className="flex items-center gap-2.5 text-xs sm:text-sm text-gray-600 hover:text-[#0055FE] transition-colors min-h-[44px] sm:min-h-0"
                 suppressHydrationWarning
               >
                 <Mail className="w-4 h-4 text-[#0055FE]" />
-                info@carfever.pk
+                info@carfever.uk
               </a>
               <div className="flex items-center gap-2.5 text-xs sm:text-sm text-gray-600">
                 <MapPin className="w-4 h-4 text-[#0055FE]" />
-                Lahore, Pakistan
+                Bristol, United Kingdom
               </div>
             </div>
           </div>

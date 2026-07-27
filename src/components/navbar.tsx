@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 import {
   Car,
   Menu,
@@ -318,19 +319,7 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16 sm:h-20">
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 z-10">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#0055FE] flex items-center justify-center">
-                <Car className="w-5 h-5 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-base sm:text-lg font-bold text-gray-900 leading-none">
-                  Car<span className="text-[#0055FE]">Fever</span>
-                </span>
-                <span className="text-[9px] text-gray-500 tracking-[0.2em] uppercase leading-none mt-0.5 hidden sm:block">
-                  Marketplace
-                </span>
-              </div>
-            </Link>
+            <AnimatedLogo size="md" subtitle="Marketplace" href="/" />
 
             {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-1">

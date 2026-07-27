@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AnimatedLogo } from '@/components/ui/animated-logo';
 import {
   Car,
   Mail,
@@ -155,19 +156,12 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
 
         {/* Top Logo */}
         <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Car className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-extrabold tracking-tight text-white leading-none">
-                Car<span className="text-blue-200">Fever</span>
-              </span>
-              <span className="text-[9px] text-blue-100/80 tracking-[0.2em] uppercase font-semibold mt-0.5">
-                {isSeller ? 'Dealer Registration Desk' : 'Buyer Registration Desk'}
-              </span>
-            </div>
-          </Link>
+          <AnimatedLogo
+            variant="dark"
+            size="md"
+            subtitle={isSeller ? 'Dealer Registration Desk' : 'Buyer Registration Desk'}
+            href="/"
+          />
         </div>
 
         {/* Center Hero Content */}

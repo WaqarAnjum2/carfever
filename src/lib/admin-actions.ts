@@ -1,7 +1,7 @@
 'use server';
 
 import { cache } from 'react';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { createServiceRoleClient, createServerClient } from './supabase/server';
 import { Database } from './supabase/types';
@@ -576,6 +576,9 @@ export async function saveSiteSettings(
     .upsert(rows, { onConflict: 'key' });
 
   if (error) handleError(error, 'Failed to save site settings');
+  revalidatePath('/about');
+  revalidatePath('/about-us');
+  revalidatePath('/');
   revalidatePath('/admin/settings');
   return true;
 }
@@ -716,19 +719,12 @@ export async function loginAdmin(emailInput: string, passwordInput: string) {
   }
 
   if (!finalProfile) {
-    const { data: newProfile } = await serviceClient
-      .from('users')
-      .upsert({
-        auth_user_id: authData.user.id,
-        email: authData.user.email!,
-        name: authData.user.user_metadata?.name || authData.user.email!.split('@')[0],
-        role: authData.user.user_metadata?.role || 'buyer',
-        status: 'active'
-      }, { onConflict: 'auth_user_id' })
-      .select('id, auth_user_id, name, email, role, status')
-      .single();
-
-    finalProfile = newProfile;
+    try { await supabase.auth.signOut(); } catch {}
+    return {
+      success: false as const,
+      errorType: 'not_found',
+      error: 'NO_ACCOUNT: No profile was found for this account. It may have been removed by an administrator.',
+    };
   }
 
 
@@ -854,7 +850,10 @@ export const getAdminProfile = cache(async () => {
       }
     }
 
-    if (!userData) return null;
+    if (!userData) {
+      try { await supabase.auth.signOut(); } catch {}
+      return null;
+    }
 
     // 3. Strictly enforce suspension — sign out and deny access
     if (userData.status === 'suspended') {
@@ -1488,5 +1487,439 @@ export async function fetchUserDetailWithCars(userId: string) {
     cars: formattedCars,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PENDING LISTINGS APPROVAL ENGINE (Optimized, Atomic & Race-Condition Safe)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function getPendingCarListings(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  make?: string;
+  city?: string;
+}) {
+  await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  const page = Math.max(1, params?.page || 1);
+  const limit = Math.min(100, Math.max(1, params?.limit || 12));
+  const offset = (page - 1) * limit;
+
+  let query = supabase
+    .from('cars')
+    .select('*', { count: 'exact' })
+    .or('status.eq.pending,status.is.null,is_approved.eq.false')
+    .order('created_at', { ascending: false });
+
+  if (params?.search && params.search.trim().length > 0) {
+    const s = `%${params.search.trim()}%`;
+    query = query.or(`title.ilike.${s},model.ilike.${s},make.ilike.${s},seller_name.ilike.${s},city.ilike.${s}`);
+  }
+
+  if (params?.make && params.make !== 'all') {
+    query = query.or(`make.ilike.${params.make},brand.ilike.${params.make}`);
+  }
+
+  if (params?.city && params.city !== 'all') {
+    query = query.ilike('city', params.city);
+  }
+
+  const { data, error, count } = await query.range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('getPendingCarListings DB error:', error.message);
+    // Fallback: Query status.eq.pending explicitly
+    const fallback = await supabase
+      .from('cars')
+      .select('*', { count: 'exact' })
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    const total = fallback.count || 0;
+    return {
+      cars: fallback.data || [],
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  const total = count || 0;
+  return {
+    cars: data || [],
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+export async function getPendingCarsCount(): Promise<number> {
+  try {
+    const supabase = createServiceRoleClient();
+    const { count, error } = await supabase
+      .from('cars')
+      .select('id', { count: 'exact', head: true })
+      .or('status.eq.pending,status.is.null,is_approved.eq.false');
+
+    if (error) return 0;
+    return count || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function approveCarListing(id: string, options?: { verified?: boolean }) {
+  await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  const payload: any = {
+    status: 'approved',
+    is_approved: true,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (options?.verified) {
+    payload.is_verified = true;
+  }
+
+  let { data, error } = await supabase
+    .from('cars')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  // Retry stripping non-existent columns if schema varies
+  if (error) {
+    delete payload.is_verified;
+    delete payload.is_approved;
+    const retry = await supabase.from('cars').update(payload).eq('id', id).select().maybeSingle();
+    data = retry.data;
+    error = retry.error;
+  }
+
+  if (error) handleError(error, 'Failed to approve car listing');
+
+  revalidatePath('/admin/approvals');
+  revalidatePath('/admin/cars');
+  revalidatePath('/seller/cars');
+  revalidatePath('/buy-car');
+  revalidatePath('/');
+
+  return { success: true, car: data };
+}
+
+export async function rejectCarListing(id: string, reason?: string) {
+  await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  const payload: any = {
+    status: 'rejected',
+    is_approved: false,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (reason) {
+    payload.rejection_reason = reason;
+  }
+
+  let { data, error } = await supabase
+    .from('cars')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    delete payload.rejection_reason;
+    const retry = await supabase.from('cars').update(payload).eq('id', id).select().maybeSingle();
+    data = retry.data;
+    error = retry.error;
+  }
+
+  if (error) handleError(error, 'Failed to reject car listing');
+
+  revalidatePath('/admin/approvals');
+  revalidatePath('/admin/cars');
+  revalidatePath('/seller/cars');
+  revalidatePath('/buy-car');
+
+  return { success: true, car: data };
+}
+
+export async function bulkApproveCarListings(carIds: string[]) {
+  await verifyAdminSession();
+  if (!carIds || carIds.length === 0) return { success: true, approvedCount: 0 };
+
+  const supabase = createServiceRoleClient();
+  const payload: any = {
+    status: 'approved',
+    is_approved: true,
+    updated_at: new Date().toISOString(),
+  };
+
+  let { error } = await supabase
+    .from('cars')
+    .update(payload)
+    .in('id', carIds);
+
+  if (error) {
+    delete payload.is_approved;
+    const retry = await supabase.from('cars').update(payload).in('id', carIds);
+    error = retry.error;
+  }
+
+  if (error) handleError(error, 'Failed to bulk approve car listings');
+
+  revalidatePath('/admin/approvals');
+  revalidatePath('/admin/cars');
+  revalidatePath('/seller/cars');
+  revalidatePath('/buy-car');
+  revalidatePath('/');
+
+  return { success: true, approvedCount: carIds.length };
+}
+
+export async function approveAllPendingListings() {
+  await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  const payload: any = {
+    status: 'approved',
+    is_approved: true,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Single atomic update for all pending listings to prevent locks and race conditions
+  let { error } = await supabase
+    .from('cars')
+    .update(payload)
+    .or('status.eq.pending,status.is.null,is_approved.eq.false');
+
+  if (error) {
+    delete payload.is_approved;
+    const retry = await supabase
+      .from('cars')
+      .update(payload)
+      .eq('status', 'pending');
+    error = retry.error;
+  }
+
+  if (error) handleError(error, 'Failed to approve all pending listings');
+
+  revalidatePath('/admin/approvals');
+  revalidatePath('/admin/cars');
+  revalidatePath('/seller/cars');
+  revalidatePath('/buy-car');
+  revalidatePath('/');
+
+  return { success: true };
+}
+
+export async function wipeAllListingsAndNonAdminUsers() {
+  const currentAdmin = await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  // 1. Delete all car listings
+  const { error: carErr } = await supabase
+    .from('cars')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (carErr) console.warn('Wipe cars warning:', carErr.message);
+
+  // 2. Delete registration requests
+  const { error: regErr } = await supabase
+    .from('registration_requests')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (regErr) console.warn('Wipe registration requests warning:', regErr.message);
+
+  // 3. Delete non-admin users from public.users table
+  const { data: nonAdminProfiles } = await supabase
+    .from('users')
+    .select('id, auth_user_id, email, role')
+    .not('role', 'in', '(admin,super_admin)');
+
+  const { error: userErr } = await supabase
+    .from('users')
+    .delete()
+    .not('role', 'in', '(admin,super_admin)');
+
+  if (userErr) console.warn('Wipe non-admin users warning:', userErr.message);
+
+  // 4. Delete non-admin accounts from Supabase Auth (auth.users)
+  try {
+    const { data: authUsersRes } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    if (authUsersRes?.users) {
+      const currentAdminEmail = currentAdmin.email?.toLowerCase();
+      for (const authUser of authUsersRes.users) {
+        // Keep active admin account, delete non-admin users
+        if (authUser.email && authUser.email.toLowerCase() === currentAdminEmail) {
+          continue;
+        }
+        if (authUser.user_metadata?.role === 'admin' || authUser.user_metadata?.role === 'super_admin') {
+          continue;
+        }
+        try {
+          await supabase.auth.admin.deleteUser(authUser.id);
+        } catch (delAuthErr: any) {
+          console.warn(`Failed to delete auth user ${authUser.id}:`, delAuthErr?.message);
+        }
+      }
+    }
+  } catch (authListErr: any) {
+    console.warn('Wipe auth.users warning:', authListErr?.message);
+  }
+
+  // 5. Storage API Cleanup (Safely removes uploaded car images without DB trigger error)
+  try {
+    const { data: files } = await supabase.storage.from('car-images').list();
+    if (files && files.length > 0) {
+      const paths = files.map((f) => f.name);
+      await supabase.storage.from('car-images').remove(paths);
+    }
+  } catch (stErr: any) {
+    console.warn('Storage API cleanup warning:', stErr?.message);
+  }
+
+  // 6. Revalidate all paths
+  revalidatePath('/admin/approvals');
+  revalidatePath('/admin/cars');
+  revalidatePath('/admin/users');
+  revalidatePath('/seller/cars');
+  revalidatePath('/buy-car');
+  revalidatePath('/');
+
+  return { success: true };
+}
+
+export async function deleteUserCascade(targetUserId: string) {
+  const currentAdmin = await verifyAdminSession();
+  const supabase = createServiceRoleClient();
+
+  // 1. Fetch target user by ID or check if input is email / auth_user_id
+  let { data: targetUser } = await supabase
+    .from('users')
+    .select('id, auth_user_id, email, name, role, phone')
+    .eq('id', targetUserId)
+    .maybeSingle();
+
+  if (!targetUser) {
+    // Fallback: try fetching by auth_user_id
+    const { data: byAuthId } = await supabase
+      .from('users')
+      .select('id, auth_user_id, email, name, role, phone')
+      .eq('auth_user_id', targetUserId)
+      .maybeSingle();
+    targetUser = byAuthId;
+  }
+
+  if (!targetUser) {
+    // Fallback: try fetching by email
+    const { data: byEmail } = await supabase
+      .from('users')
+      .select('id, auth_user_id, email, name, role, phone')
+      .ilike('email', targetUserId)
+      .maybeSingle();
+    targetUser = byEmail;
+  }
+
+  const targetEmail = targetUser?.email || targetUserId;
+
+  // Prevent self-deletion
+  if (
+    (targetUser && targetUser.id === currentAdmin.id) ||
+    (targetEmail && currentAdmin.email && targetEmail.toLowerCase() === currentAdmin.email.toLowerCase())
+  ) {
+    handleError(new Error('You cannot delete your own active admin account.'), 'Delete User');
+  }
+
+  // 2. Cascade delete all cars associated with this user/seller
+  if (targetUser) {
+    const carFilter = targetUser.phone
+      ? `user_id.eq.${targetUser.id},created_by.eq.${targetUser.id},seller_phone.eq.${targetUser.phone}`
+      : `user_id.eq.${targetUser.id},created_by.eq.${targetUser.id}`;
+
+    const { error: carDelErr } = await supabase
+      .from('cars')
+      .delete()
+      .or(carFilter);
+
+    if (carDelErr) console.warn('Cascade delete cars warning:', carDelErr.message);
+  }
+
+  // 3. Delete registration requests for this email
+  if (targetEmail) {
+    const { error: regDelErr } = await supabase
+      .from('registration_requests')
+      .delete()
+      .ilike('email', targetEmail);
+
+    if (regDelErr) console.warn('Cascade delete registration requests warning:', regDelErr.message);
+  }
+
+  // 4. Delete user from public.users table
+  if (targetUser) {
+    const { error: userDelErr } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', targetUser.id);
+
+    if (userDelErr) handleError(userDelErr, 'Failed to delete user profile from public database');
+  }
+
+  // 5. Delete user from auth.users (Supabase Auth) - Multi-pass lookup to guarantee removal
+  const authIdsToDelete = new Set<string>();
+  if (targetUser?.auth_user_id) {
+    authIdsToDelete.add(targetUser.auth_user_id);
+  }
+
+  if (targetEmail) {
+    try {
+      const { data: authUsersRes } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      if (authUsersRes?.users) {
+        for (const u of authUsersRes.users) {
+          if (u.email && u.email.toLowerCase() === targetEmail.toLowerCase()) {
+            authIdsToDelete.add(u.id);
+          }
+        }
+      }
+    } catch (listErr: any) {
+      console.warn('Supabase Auth listUsers lookup warning:', listErr?.message);
+    }
+  }
+
+  for (const authId of authIdsToDelete) {
+    try {
+      const { error: authDelErr } = await supabase.auth.admin.deleteUser(authId);
+      if (authDelErr) console.warn(`Supabase Auth deleteUser warning (${authId}):`, authDelErr.message);
+    } catch (authErr: any) {
+      console.warn(`Supabase Auth deleteUser exception (${authId}):`, authErr?.message);
+    }
+  }
+
+  // 6. Revalidate all paths
+  revalidatePath('/admin/users');
+  revalidatePath('/admin/dealers');
+  revalidatePath('/admin/cars');
+  revalidatePath('/admin/approvals');
+  revalidatePath('/seller/cars');
+  revalidatePath('/buy-car');
+  revalidatePath('/');
+
+  return {
+    success: true,
+    deletedUser: {
+      id: targetUser?.id || targetUserId,
+      name: targetUser?.name || targetEmail,
+      email: targetEmail,
+    },
+  };
+}
+
 
 

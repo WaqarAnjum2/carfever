@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 import {
   Car,
   LayoutDashboard,
@@ -159,23 +160,26 @@ export default function SellerLayout({
       {/* ── DESKTOP SIDEBAR ── */}
       <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 flex-col z-50 shadow-sm">
         
-        {/* Brand Header */}
-        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-purple-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20 flex-shrink-0">
-            <Car className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-base font-extrabold text-slate-900 leading-none">
-              Car<span className="text-purple-600">Fever</span>
-            </div>
-            <div className="text-[10px] font-bold text-purple-600 uppercase tracking-[0.15em] mt-1">
-              Dealer Console
+        {/* Brand Header: Logo + Animated User Name */}
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-gradient-to-r from-purple-50/60 to-white">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AnimatedLogo size="md" showText={false} href="/seller" />
+            <div className="flex flex-col min-w-0">
+              <div className="text-xs font-extrabold text-slate-900 truncate tracking-tight flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-800 bg-clip-text text-transparent animate-pulse font-black truncate">
+                  {sellerUser?.name || "Dealer Account"}
+                </span>
+              </div>
+              <span className="text-[10px] text-purple-600 font-bold tracking-wider uppercase block truncate">
+                Dealer Console
+              </span>
             </div>
           </div>
         </div>
 
         {/* Action Button */}
-        <div className="p-4 border-b border-slate-100">
+        <div className="p-3.5 border-b border-slate-100">
           <Link
             href="/seller/sell-car"
             className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-purple-500/20 transition-all cursor-pointer"
@@ -186,7 +190,7 @@ export default function SellerLayout({
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 p-3.5 space-y-1.5 overflow-y-auto">
           {sellerMenuItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -252,23 +256,24 @@ export default function SellerLayout({
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-600 flex items-center justify-center text-white font-bold">
-              <Car className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-base font-extrabold text-slate-900 leading-none">
-                Car<span className="text-purple-600">Fever</span>
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-gradient-to-r from-purple-50/60 to-white">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AnimatedLogo size="md" showText={false} href="/seller" />
+            <div className="flex flex-col min-w-0">
+              <div className="text-xs font-extrabold text-slate-900 truncate tracking-tight flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-800 bg-clip-text text-transparent animate-pulse font-black truncate">
+                  {sellerUser?.name || "Dealer Account"}
+                </span>
               </div>
-              <div className="text-[10px] font-bold text-purple-600 uppercase tracking-widest mt-1">
+              <span className="text-[10px] text-purple-600 font-bold tracking-wider uppercase block truncate">
                 Dealer Console
-              </div>
+              </span>
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 shrink-0 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
