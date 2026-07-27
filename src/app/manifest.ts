@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Car Fever — Premium Car Marketplace",
     short_name: "Car Fever",
     description:
-      "Pakistan's most trusted automotive marketplace. Find your dream car with verified listings and professional inspections.",
+      "UK's most trusted automotive marketplace. Find your dream car with verified listings and professional inspections.",
     start_url: "/",
     display: "standalone",
     background_color: "#09090b",

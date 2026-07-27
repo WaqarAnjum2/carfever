@@ -7,28 +7,28 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 const popularSearches = [
+  "BMW 3 Series",
+  "Mercedes C-Class",
+  "Volkswagen Golf",
+  "Ford Focus",
+  "Audi A3",
   "Toyota Corolla",
-  "Honda Civic",
-  "Suzuki Alto",
-  "Toyota Yaris",
-  "KIA Sportage",
-  "Hyundai Tucson",
 ];
 
 const cities = [
-  "All Pakistan",
-  "Lahore",
-  "Karachi",
-  "Islamabad",
-  "Rawalpindi",
-  "Peshawar",
-  "Faisalabad",
+  "All UK",
+  "London",
+  "Manchester",
+  "Birmingham",
+  "Bristol",
+  "Leeds",
+  "Edinburgh",
 ];
 
 export function HeroSection() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("All Pakistan");
+  const [selectedCity, setSelectedCity] = useState("All UK");
   const [showCities, setShowCities] = useState(false);
 
   return (
@@ -57,7 +57,7 @@ export function HeroSection() {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0055FE]/10 mb-8 animate-fade-in border border-[#0055FE]/20">
           <Sparkles className="w-3.5 h-3.5 text-[#0055FE]" />
           <span className="text-xs font-semibold text-[#0055FE] tracking-wide">
-            Pakistan&apos;s #1 Premium Car Marketplace
+            UK&apos;s #1 Premium Car Marketplace
           </span>
         </div>
 
@@ -119,9 +119,9 @@ export function HeroSection() {
               
               <select className="h-11 sm:h-12 px-4 bg-gray-50 rounded-xl text-base sm:text-sm text-gray-900 hover:bg-gray-100 transition-colors border border-transparent focus:border-[#0055FE] focus:ring-1 focus:ring-[#0055FE] focus:outline-none w-full sm:w-auto min-w-[140px] appearance-none cursor-pointer">
                 <option value="">Select City</option>
-                <option value="lahore">Lahore</option>
-                <option value="karachi">Karachi</option>
-                <option value="islamabad">Islamabad</option>
+                <option value="london">London</option>
+                <option value="manchester">Manchester</option>
+                <option value="birmingham">Birmingham</option>
               </select>
 
               <select className="h-11 sm:h-12 px-4 bg-gray-50 rounded-xl text-base sm:text-sm text-gray-900 hover:bg-gray-100 transition-colors border border-transparent focus:border-[#0055FE] focus:ring-1 focus:ring-[#0055FE] focus:outline-none w-full sm:w-auto min-w-[140px] appearance-none cursor-pointer">
@@ -159,13 +159,13 @@ export function HeroSection() {
 
         {/* Stats */}
         <div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 max-w-2xl mx-auto mt-14 animate-slide-up"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 max-w-2xl mx-auto mt-20 animate-slide-up"
           style={{ animationDelay: "0.3s" }}
         >
           {[
             { value: "50K+", label: "Active Listings" },
             { value: "120K+", label: "Happy Users" },
-            { value: "25+", label: "Cities" },
+            { value: "15+", label: "UK Cities" },
             { value: "4.9★", label: "User Rating" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">

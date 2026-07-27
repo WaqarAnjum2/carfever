@@ -182,7 +182,7 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
 
           <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed mb-6">
             {isSeller
-              ? 'List showroom inventory, connect with verified buyers, and grow your dealership sales across Pakistan.'
+              ? 'List showroom inventory, connect with verified buyers, and grow your dealership sales across the UK.'
               : 'Browse certified vehicles, save wishlist cars, and connect directly with verified dealerships.'}
           </p>
 

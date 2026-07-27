@@ -13,13 +13,13 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Car Fever — Premium Car Marketplace in Pakistan",
+  title: "Car Fever — Premium Car Marketplace in UK",
   description:
-    "Discover, buy, and sell premium vehicles on Pakistan's most trusted car marketplace. Browse thousands of new & used cars, schedule expert inspections, and connect with verified dealers.",
+    "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace. Browse thousands of new & used cars, schedule expert inspections, and connect with verified dealers.",
   openGraph: {
-    title: "Car Fever — Premium Car Marketplace in Pakistan",
+    title: "Car Fever — Premium Car Marketplace in UK",
     description:
-      "Discover, buy, and sell premium vehicles on Pakistan's most trusted car marketplace.",
+      "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace.",
   },
 };
 

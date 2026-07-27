@@ -4,19 +4,19 @@ import Script from "next/script";
 import "./globals.css";
 import { ScrollToTop } from "@/components/scroll-to-top";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://carfever.pk";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://carfever.co.uk";
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "AutoDealer",
   name: "Car Fever",
   url: siteUrl,
-  description: "Pakistan's premium car marketplace for buying and selling new & used vehicles.",
-  areaServed: "PK",
-  priceRange: "₨₨₨",
+  description: "UK's premium car marketplace for buying and selling new & used vehicles.",
+  areaServed: "GB",
+  priceRange: "£££",
   contactPoint: {
     "@type": "ContactPoint",
-    telephone: "+92-300-0000000",
+    telephone: "+44-750-7696334",
     contactType: "customer service",
   },
   sameAs: [
