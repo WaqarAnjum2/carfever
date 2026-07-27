@@ -137,16 +137,36 @@ export type DbCategory = {
 
 export type DbBlog = {
   id: string;
-  title: string;
   slug: string;
+  title: string;
   excerpt: string | null;
-  content: string | null;
-  featured_image: string | null;
-  author_id: string | null;
-  category_id: string | null;
-  status: BlogStatus;
-  published_at: string | null;
+  content: string;
+  cover_image: string | null;
+  images: string[];
+  author_name: string;
+  meta_title: string | null;
+  meta_description: string | null;
+  keywords: string[];
+  status: 'draft' | 'published';
+  views: number;
   created_at: string;
+  updated_at: string;
+};
+
+export type DbJob = {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: 'Full-time' | 'Part-time' | 'Remote' | 'Contract';
+  salary: string | null;
+  description: string;
+  requirements: string[];
+  apply_google_form_url: string | null;
+  apply_whatsapp_number: string | null;
+  status: 'active' | 'closed';
+  created_at: string;
+  updated_at: string;
 };
 
 export type DbSEOSetting = {
@@ -269,16 +289,20 @@ export interface Database {
         Row: DbBlog;
         Insert: {
           id?: string;
-          title: string;
           slug: string;
+          title: string;
           excerpt?: string | null;
-          content?: string | null;
-          featured_image?: string | null;
-          author_id?: string | null;
-          category_id?: string | null;
-          status?: BlogStatus;
-          published_at?: string | null;
+          content: string;
+          cover_image?: string | null;
+          images?: string[];
+          author_name?: string;
+          meta_title?: string | null;
+          meta_description?: string | null;
+          keywords?: string[];
+          status?: 'draft' | 'published';
+          views?: number;
           created_at?: string;
+          updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['blogs']['Insert']>;
         Relationships: [];
@@ -382,6 +406,26 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['registration_requests']['Insert']>;
+        Relationships: [];
+      };
+      jobs: {
+        Row: DbJob;
+        Insert: {
+          id?: string;
+          title: string;
+          department: string;
+          location?: string;
+          type?: 'Full-time' | 'Part-time' | 'Remote' | 'Contract';
+          salary?: string | null;
+          description: string;
+          requirements?: string[];
+          apply_google_form_url?: string | null;
+          apply_whatsapp_number?: string | null;
+          status?: 'active' | 'closed';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['jobs']['Insert']>;
         Relationships: [];
       };
     };

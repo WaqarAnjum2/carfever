@@ -23,6 +23,8 @@ import {
   ShieldCheck,
   MessageSquare,
   FileText,
+  Briefcase,
+  Building2,
   UserCog,
   Search,
   Clock,
@@ -47,6 +49,8 @@ const navLinks = [
   { label: "Buy Cars", href: "/buy-car" },
   { label: "Sell Car", href: "/sell-car" },
   { label: "Certified Dealers", href: "/dealers" },
+  { label: "Blog", href: "/blog" },
+  { label: "Careers", href: "/jobs" },
   { label: "About Us", href: "/about" },
 ];
 
@@ -94,6 +98,8 @@ function getWishlistCount(): number {
 export function Navbar() {
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [exploreOpen, setExploreOpen] = useState(false);
+  const [registerMenuOpen, setRegisterMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const [authModal, setAuthModal] = useState<"login" | "signup" | null>(null);
@@ -291,6 +297,8 @@ export function Navbar() {
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const navDropdownRef = useRef<HTMLDivElement>(null);
+  const exploreRef = useRef<HTMLDivElement>(null);
+  const registerMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -299,6 +307,12 @@ export function Navbar() {
       }
       if (navDropdownRef.current && !navDropdownRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
+      }
+      if (exploreRef.current && !exploreRef.current.contains(event.target as Node)) {
+        setExploreOpen(false);
+      }
+      if (registerMenuRef.current && !registerMenuRef.current.contains(event.target as Node)) {
+        setRegisterMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -323,15 +337,89 @@ export function Navbar() {
 
             {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-[#0055FE] rounded-xl hover:bg-blue-50/80 transition-all duration-200"
+              <Link
+                href="/buy-car"
+                className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-[#0055FE] rounded-xl hover:bg-blue-50/80 transition-all duration-200"
+              >
+                Buy Cars
+              </Link>
+              <Link
+                href="/sell-car"
+                className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-[#0055FE] rounded-xl hover:bg-blue-50/80 transition-all duration-200"
+              >
+                Sell Car
+              </Link>
+
+              {/* Explore Dropdown */}
+              <div ref={exploreRef} className="relative">
+                <button
+                  onClick={() => setExploreOpen((v) => !v)}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-gray-700 hover:text-[#0055FE] rounded-xl hover:bg-blue-50/80 transition-all duration-200 cursor-pointer"
                 >
-                  {link.label}
-                </Link>
-              ))}
+                  <span>Explore</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exploreOpen ? "rotate-180 text-[#0055FE]" : "text-gray-400"}`} />
+                </button>
+
+                {exploreOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-[60] animate-in fade-in zoom-in-95 duration-150">
+                    <Link
+                      href="/dealers"
+                      onClick={() => setExploreOpen(false)}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0055FE] flex items-center justify-center shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900 group-hover:text-[#0055FE] transition-colors">Certified Dealers</p>
+                        <p className="text-[10px] text-gray-400 font-medium">Explore verified UK dealerships</p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/blog"
+                      onClick={() => setExploreOpen(false)}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900 group-hover:text-purple-600 transition-colors">Blog & Journal</p>
+                        <p className="text-[10px] text-gray-400 font-medium">Reviews, buying guides & news</p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/jobs"
+                      onClick={() => setExploreOpen(false)}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <Briefcase className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">Careers & Jobs</p>
+                        <p className="text-[10px] text-gray-400 font-medium">Join the CarFever UK team</p>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/about"
+                      onClick={() => setExploreOpen(false)}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                        <HelpCircle className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-900 group-hover:text-slate-900 transition-colors">About Us</p>
+                        <p className="text-[10px] text-gray-400 font-medium">Our mission, team & HQ</p>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
             </nav>
 
             {/* Right side */}
@@ -341,6 +429,7 @@ export function Navbar() {
               <Link
                 href="/wishlist"
                 className="relative p-2.5 rounded-lg text-gray-500 hover:text-[#0055FE] hover:bg-blue-50 transition-all duration-200 hidden sm:block"
+                title="Wishlist"
               >
                 <Heart className="w-[18px] h-[18px]" />
                 {wishlistCount > 0 && (
@@ -350,7 +439,14 @@ export function Navbar() {
                 )}
               </Link>
 
-
+              {/* Check Status */}
+              <button
+                onClick={() => { setStatusModalOpen(true); setStatusResult(null); setStatusError(""); }}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#0055FE] bg-gray-100 hover:bg-blue-50 px-3 py-2 rounded-xl transition-colors"
+              >
+                <Search className="w-3.5 h-3.5 text-slate-500" />
+                <span>Check Status</span>
+              </button>
 
               {isLoggedIn ? (
                 /* ── Logged In: Profile Dropdown ── */
@@ -422,44 +518,56 @@ export function Navbar() {
                   )}
                 </div>
               ) : (
-                /* ── Not Logged In: Auth Buttons ── */
-                <>
-                  <button
-                    onClick={() => { setStatusModalOpen(true); setStatusResult(null); setStatusError(""); }}
-                    className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#0055FE] bg-gray-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors mr-2"
-                  >
-                    <Search className="w-3.5 h-3.5" /> Check Status
-                  </button>
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Link href="/login">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl"
-                      >
-                        Login
-                      </Button>
-                    </Link>
-                    <Link href="/register/buyer">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-[#0055FE] text-[#0055FE] hover:bg-blue-50 font-bold text-xs rounded-xl"
-                      >
-                        Register Buyer
-                      </Button>
-                    </Link>
-                    <Link href="/register/seller">
-                      <Button
-                        size="sm"
-                        className="bg-[#0055FE] hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm shadow-blue-500/20"
-                      >
-                        Become a Dealer
-                      </Button>
-                    </Link>
+                /* ── Not Logged In: Streamlined Auth Buttons ── */
+                <div className="hidden sm:flex items-center gap-2">
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-700 hover:text-[#0055FE] hover:bg-blue-50 font-bold text-xs rounded-xl"
+                    >
+                      Login
+                    </Button>
+                  </Link>
 
+                  {/* Register Dropdown */}
+                  <div ref={registerMenuRef} className="relative">
+                    <button
+                      onClick={() => setRegisterMenuOpen((v) => !v)}
+                      className="px-4 py-2 bg-[#0055FE] hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    >
+                      <span>Join Platform</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${registerMenuOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {registerMenuOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-[60] animate-in fade-in zoom-in-95 duration-150">
+                        <Link
+                          href="/register/buyer"
+                          onClick={() => setRegisterMenuOpen(false)}
+                          className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-blue-50 transition-colors text-xs font-bold text-slate-800 group"
+                        >
+                          <UserIcon className="w-4 h-4 text-[#0055FE]" />
+                          <div className="flex flex-col">
+                            <span>Register Buyer</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Create buyer account</span>
+                          </div>
+                        </Link>
+                        <Link
+                          href="/register/seller"
+                          onClick={() => setRegisterMenuOpen(false)}
+                          className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-purple-50 transition-colors text-xs font-bold text-purple-700 group border-t border-slate-100 mt-1 pt-2"
+                        >
+                          <Building2 className="w-4 h-4 text-purple-600" />
+                          <div className="flex flex-col">
+                            <span>Become a Dealer</span>
+                            <span className="text-[10px] text-purple-400 font-medium">Verify dealership account</span>
+                          </div>
+                        </Link>
+                      </div>
+                    )}
                   </div>
-                </>
+                </div>
               )}
 
               {/* Mobile Menu Toggle */}

@@ -13,6 +13,7 @@ import {
   LogOut,
   Bell,
   FileText,
+  Briefcase,
   BarChart3,
   Search as SearchIcon,
   ChevronDown,
@@ -42,6 +43,8 @@ const menuItems: MenuItem[] = [
   { label: "Pending Approvals", href: "/admin/approvals",    icon: ShieldCheck,     roles: ["admin"] },
   { label: "Manage Cars",       href: "/admin/cars",         icon: Car,             roles: ["admin", "seller"] },
   { label: "User & Dealer Hub", href: "/admin/users",        icon: Users,           roles: ["admin"] },
+  { label: "Blog Posts",        href: "/admin/blogs",        icon: FileText,        roles: ["admin"] },
+  { label: "Careers & Jobs",    href: "/admin/jobs",         icon: Briefcase,       roles: ["admin"] },
   { label: "Site Settings",     href: "/admin/settings",     icon: Settings,        roles: ["admin"] },
   { label: "Profile Settings",  href: "/admin/settings/profile", icon: UserCog,    roles: ["admin", "seller", "buyer"] },
 ];

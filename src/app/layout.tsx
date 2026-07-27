@@ -49,12 +49,12 @@ export const metadata: Metadata = {
     "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace. New & used cars, expert inspections, dealer comparisons, and certified UK model cards.",
   icons: {
     icon: [
-      { url: "/carfever-logo.webp", type: "image/webp" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/apple-icon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: "/carfever-logo.webp",
-    apple: "/carfever-logo.webp",
+    shortcut: "/apple-icon.png",
+    apple: "/apple-icon.png",
   },
   keywords: [
     "car marketplace UK",
@@ -63,11 +63,8 @@ export const metadata: Metadata = {
     "used cars UK",
     "new cars UK",
     "Car Fever",
-    "car inspections",
-    "car dealers UK",
-    "UK car prices",
   ],
-  authors: [{ name: "Car Fever" }],
+  authors: [{ name: "Car Fever Team" }],
   creator: "Car Fever",
   publisher: "Car Fever",
   metadataBase: new URL(siteUrl),
@@ -77,19 +74,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_GB",
-    siteName: "Car Fever",
+    url: siteUrl,
+    siteName: "Car Fever UK",
     title: "Car Fever — Premium Verified Car Marketplace in UK",
     description:
-      "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace.",
-    url: siteUrl,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Car Fever" }],
+      "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace. New & used cars, expert inspections, dealer comparisons, and certified UK model cards.",
+    images: [
+      {
+        url: "/apple-icon.png",
+        width: 512,
+        height: 512,
+        alt: "Car Fever UK Logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Car Fever — Premium Verified Car Marketplace",
+    title: "Car Fever — Premium Verified Car Marketplace in UK",
     description:
       "Discover, buy, and sell premium vehicles on the UK's most trusted car marketplace.",
-    images: ["/og-image.png"],
+    images: ["/apple-icon.png"],
   },
   robots: {
     index: true,
@@ -123,10 +127,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} antialiased`} data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/apple-icon.png" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/apple-icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-screen bg-background text-foreground font-sans overscroll-none">
-        <Script id="schema-jsonld" type="application/ld+json" strategy="beforeInteractive">
-          {JSON.stringify(jsonLd)}
-        </Script>
         {/* Google Analytics 4 — only loads when NEXT_PUBLIC_GA_ID is set in .env.local */}
         {GA_ID && (
           <>
