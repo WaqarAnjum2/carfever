@@ -83,8 +83,10 @@ export default async function PublicJobsPage() {
                         {job.type}
                       </span>
                     </div>
-                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                      {job.title}
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight hover:text-[#0055FE] transition-colors">
+                      <Link href={`/jobs/${job.id}`}>
+                        {job.title}
+                      </Link>
                     </h3>
                   </div>
 
@@ -111,7 +113,7 @@ export default async function PublicJobsPage() {
                 {/* Description */}
                 <div className="space-y-3">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">About the Role</h4>
-                  <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-line">
+                  <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed line-clamp-3">
                     {job.description}
                   </p>
                 </div>
@@ -124,43 +126,52 @@ export default async function PublicJobsPage() {
                       <span>Key Requirements</span>
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {job.requirements.map((req, i) => (
+                      {job.requirements.slice(0, 4).map((req, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs text-slate-700 font-medium">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <span>{req}</span>
+                          <span className="line-clamp-1">{req}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Application Actions (Google Form & WhatsApp Triggers) */}
-                <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
-                  {job.apply_google_form_url && (
-                    <a
-                      href={job.apply_google_form_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-6 py-3 bg-[#0055FE] hover:bg-blue-700 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>Apply via Google Form</span>
-                    </a>
-                  )}
+                {/* Application & Navigation Actions */}
+                <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <Link
+                    href={`/jobs/${job.id}`}
+                    className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                  >
+                    <span>View Full Details</span>
+                  </Link>
 
-                  {job.apply_whatsapp_number && (
-                    <a
-                      href={`https://wa.me/${job.apply_whatsapp_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                        `Hi CarFever HR Team, I am interested in applying for the position: ${job.title} (${job.id}).`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Apply via WhatsApp</span>
-                    </a>
-                  )}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    {job.apply_google_form_url && (
+                      <a
+                        href={job.apply_google_form_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-3 bg-[#0055FE] hover:bg-blue-700 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        <span>Apply via Form</span>
+                      </a>
+                    )}
+
+                    {job.apply_whatsapp_number && (
+                      <a
+                        href={`https://wa.me/${job.apply_whatsapp_number.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                          `Hi CarFever HR Team, I am interested in applying for the position: ${job.title} (${job.id}).`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>WhatsApp</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
