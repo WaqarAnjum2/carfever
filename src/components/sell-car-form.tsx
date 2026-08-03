@@ -184,7 +184,13 @@ const CAR_FEATURES = [
   "Power Windows",
 ];
 
-export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boolean }) {
+export function SellCarForm({
+  isSellerPortal = false,
+  onClose,
+}: {
+  isSellerPortal?: boolean;
+  onClose?: () => void;
+}) {
   const [step, setStep] = useState(1);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"success" | "error">("success");
@@ -1141,7 +1147,7 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
 
             <p className="text-slate-600 text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
               Congratulations <strong className="text-slate-900">{formData.sellerName}</strong>, your{" "}
-              <strong className="text-slate-900">{formData.year} {getEffectiveMake()} {getEffectiveModel()}</strong> has been submitted.
+              <strong className="text-slate-900">{formData.year} {getEffectiveMake()} {getEffectiveModel()}</strong> has been submitted. Your listing is currently <strong className="text-[#0055FE]">under verification</strong> and will be shown to customers upon admin approval.
             </p>
 
             <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 max-w-md mx-auto text-left space-y-3.5">
@@ -1161,22 +1167,26 @@ export function SellCarForm({ isSellerPortal = false }: { isSellerPortal?: boole
                   2
                 </span>
                 <span>
-                  After 200-point inspection, your listing gets a verified badge.
+                  Your listing is under verification and will be published on the marketplace once approved by the admin.
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-              <Link href={isSellerPortal ? "/seller/cars" : "/seller/dashboard"}>
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-12 px-6 rounded-2xl shadow-md shadow-purple-500/20">
-                  {isSellerPortal ? "View My Cars in Seller Portal" : "View in Seller Console"}
+            <div className="flex items-center justify-center pt-4">
+              {onClose ? (
+                <Button
+                  onClick={onClose}
+                  className="bg-[#0055FE] hover:bg-blue-700 text-white font-bold h-12 px-8 rounded-2xl shadow-lg shadow-blue-500/20 transition-all cursor-pointer min-w-[140px]"
+                >
+                  Close
                 </Button>
-              </Link>
-              <Link href="/buy-car">
-                <Button variant="outline" className="border-slate-200 text-slate-700 font-bold h-12 px-6 rounded-2xl">
-                  Go to Marketplace
-                </Button>
-              </Link>
+              ) : (
+                <Link href={isSellerPortal ? "/seller/cars" : "/seller/dashboard"}>
+                  <Button className="bg-[#0055FE] hover:bg-blue-700 text-white font-bold h-12 px-8 rounded-2xl shadow-lg shadow-blue-500/20 transition-all cursor-pointer min-w-[140px]">
+                    Close
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         )}
