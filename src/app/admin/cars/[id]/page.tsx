@@ -37,6 +37,7 @@ import {
 import { toast } from 'sonner';
 import { fetchCarDetailsById, approveCar, rejectCar, deleteCar, updateCar, uploadImage, deleteStorageImage } from '@/lib/admin-actions';
 import { convertMultipleToWebP } from '@/lib/image-utils';
+import { useCarOptions } from '@/lib/hooks/use-car-options';
 
 const CAR_FEATURES_LIST = [
   "Sunroof / Moonroof",
@@ -103,6 +104,8 @@ export default function CarDetailsPage({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const isSeller = pathname.startsWith('/seller');
   const backUrl = isSeller ? '/seller/cars' : '/admin/cars';
+
+  const { bodyTypeNames, fuelTypeNames } = useCarOptions();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{ car: any; sellerProfile: any; inquiryCount: number } | null>(null);
@@ -633,12 +636,9 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
                   onChange={handleFormChange}
                   className={inputClass}
                 >
-                  <option value="Sedan">Sedan</option>
-                  <option value="Hatchback">Hatchback</option>
-                  <option value="SUV">SUV / Crossover</option>
-                  <option value="Pickup">Pickup Truck</option>
-                  <option value="Coupe">Coupe</option>
-                  <option value="Van">Van / MPV</option>
+                  {bodyTypeNames.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
                 </select>
               </div>
 
@@ -650,10 +650,9 @@ function extractCarFeatures(featuresRaw: any, descriptionRaw?: string | null): {
                   onChange={handleFormChange}
                   className={inputClass}
                 >
-                  <option value="Petrol">Petrol</option>
-                  <option value="Diesel">Diesel</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Electric">Electric</option>
+                  {fuelTypeNames.map((f) => (
+                    <option key={f} value={f}>{f}</option>
+                  ))}
                 </select>
               </div>
 

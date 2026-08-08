@@ -20,6 +20,7 @@ import {
 import { submitCarListing } from "@/lib/server-actions";
 import { uploadImage } from "@/lib/admin-actions";
 import { convertMultipleToWebP } from "@/lib/image-utils";
+import { useCarOptions } from "@/lib/hooks/use-car-options";
 
 const POPULAR_BRANDS = [
   "Ford",
@@ -82,7 +83,6 @@ const BRAND_MODELS: Record<string, string[]> = {
   Lexus: ["IS", "ES", "NX", "RX", "UX", "Other"],
 };
 
-
 const UK_CITIES = [
   "London",
   "Manchester",
@@ -100,40 +100,6 @@ const UK_CITIES = [
   "Leicester",
   "Newcastle upon Tyne",
   "Belfast",
-  "Sunderland",
-  "Brighton",
-  "Hull",
-  "Wolverhampton",
-  "Plymouth",
-  "Derby",
-  "Southampton",
-  "Stoke-on-Trent",
-  "Salford",
-  "Aberdeen",
-  "Westminster",
-  "Portsmouth",
-  "York",
-  "Oxford",
-  "Cambridge",
-  "Reading",
-  "Luton",
-  "Preston",
-  "Blackpool",
-  "Bolton",
-  "Stockport",
-  "Middlesbrough",
-  "Swansea",
-  "Peterborough",
-  "Milton Keynes",
-  "Northampton",
-  "Warrington",
-  "Exeter",
-  "Bath",
-  "Gloucester",
-  "Cheltenham",
-  "Ipswich",
-  "Norwich",
-  "Dundee",
   "Other City",
 ];
 
@@ -191,6 +157,10 @@ export function SellCarForm({
   isSellerPortal?: boolean;
   onClose?: () => void;
 }) {
+  const { makeNames, cityNames } = useCarOptions();
+  const popularBrands: string[] = Array.from(new Set([...makeNames, ...POPULAR_BRANDS]));
+  const ukCitiesList: string[] = Array.from(new Set([...cityNames, ...UK_CITIES]));
+
   const [step, setStep] = useState(1);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"success" | "error">("success");
@@ -510,7 +480,7 @@ export function SellCarForm({
                   className={selectClass}
                 >
                   <option value="" disabled>-- Select Brand --</option>
-                  {POPULAR_BRANDS.map((brand) => (
+                  {popularBrands.map((brand) => (
                     <option key={brand} value={brand}>
                       {brand}
                     </option>
@@ -866,7 +836,7 @@ export function SellCarForm({
                   className={selectClass}
                 >
                   <option value="" disabled>-- Select UK City --</option>
-                  {UK_CITIES.map((c) => (
+                  {ukCitiesList.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>

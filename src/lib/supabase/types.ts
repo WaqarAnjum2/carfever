@@ -442,3 +442,50 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
+
+export type DbCarMake = {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DbCarCity = {
+  id: string;
+  name: string;
+  region: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DbCarBodyType = {
+  id: string;
+  name: string;
+  icon: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DbCarFuelType = {
+  id: string;
+  name: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CarOptionsData = {
+  makes: DbCarMake[];
+  cities: DbCarCity[];
+  bodyTypes: DbCarBodyType[];
+  fuelTypes: DbCarFuelType[];
+};
+

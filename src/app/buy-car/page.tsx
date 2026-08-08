@@ -238,6 +238,8 @@ function SkeletonCard() {
 
 // ── Filter Sidebar Component ──────────────────────────────────────────────────
 
+import { useCarOptions } from '@/lib/hooks/use-car-options';
+
 interface FilterSidebarProps {
   selectedMake: string | null;
   setSelectedMake: (v: string | null) => void;
@@ -281,11 +283,12 @@ function FilterSidebar({
   setMileageMax,
   onReset,
 }: FilterSidebarProps) {
-  const makes = ['Toyota', 'Honda', 'Suzuki', 'KIA', 'Hyundai', 'Tesla', 'BMW', 'Mercedes-Benz', 'Audi', 'Nissan', 'Changan', 'MG', 'Haval'];
-  const cities = ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala'];
-  const fuelTypes = ['Petrol', 'Diesel', 'Hybrid', 'Electric'];
+  const { makeNames, cityNames, bodyTypeNames, fuelTypeNames } = useCarOptions();
+  const makes = makeNames;
+  const cities = cityNames;
+  const fuelTypes = fuelTypeNames;
   const transmissions = ['Automatic', 'Manual'];
-  const bodyTypes = ['Sedan', 'Hatchback', 'SUV', 'Pickup', 'Coupe', 'Van'];
+  const bodyTypes = bodyTypeNames;
 
   const handleFuelToggle = (fuel: string, checked: boolean) => {
     if (checked) {

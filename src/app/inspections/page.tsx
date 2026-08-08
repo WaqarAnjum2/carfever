@@ -22,8 +22,11 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { submitInspectionBooking } from "@/lib/server-actions";
+import { useCarOptions } from "@/lib/hooks/use-car-options";
 
 export default function InspectionsPage() {
+  const { makeNames } = useCarOptions();
+  const makesList = makeNames;
   const [bookingStarted, setBookingStarted] = useState(false);
   const [step, setStep] = useState(1);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -251,11 +254,9 @@ export default function InspectionsPage() {
                         <label className={labelClass}>Car Brand / Make</label>
                         <select name="make" value={formData.make} onChange={handleInputChange} className={selectClass}>
                           <option value="" disabled>Select Make</option>
-                          <option value="Toyota">Toyota</option>
-                          <option value="Honda">Honda</option>
-                          <option value="Suzuki">Suzuki</option>
-                          <option value="KIA">KIA</option>
-                          <option value="Hyundai">Hyundai</option>
+                          {makesList.map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
                         </select>
                       </div>
 

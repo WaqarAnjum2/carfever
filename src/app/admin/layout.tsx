@@ -25,6 +25,7 @@ import {
   Globe,
   Loader2,
   Menu,
+  Database,
 } from "lucide-react";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { getAdminInitialData, logoutAdmin, getPendingCarsCount } from "@/lib/admin-actions";
@@ -43,6 +44,7 @@ const menuItems: MenuItem[] = [
   { label: "Pending Approvals", href: "/admin/approvals",    icon: ShieldCheck,     roles: ["admin"] },
   { label: "Manage Cars",       href: "/admin/cars",         icon: Car,             roles: ["admin", "seller"] },
   { label: "User & Dealer Hub", href: "/admin/users",        icon: Users,           roles: ["admin"] },
+  { label: "Car Options & Cities", href: "/admin/options",    icon: Database,        roles: ["admin"] },
   { label: "Blog Posts",        href: "/admin/blogs",        icon: FileText,        roles: ["admin"] },
   { label: "Careers & Jobs",    href: "/admin/jobs",         icon: Briefcase,       roles: ["admin"] },
   { label: "Site Settings",     href: "/admin/settings",     icon: Settings,        roles: ["admin"] },
