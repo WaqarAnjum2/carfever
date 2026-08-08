@@ -17,6 +17,7 @@ const RegistrationRequestSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(['buyer', 'seller'], { message: 'Admin role is not permitted' }),
   message: z.string().max(1000).optional(),
+  password: z.string().optional(),
 });
 
 const ApprovalActionSchema = z.object({
@@ -46,6 +47,7 @@ export async function submitRegistrationRequest(input: {
   phone?: string;
   role: AllowedRegistrationRole;
   message?: string;
+  password?: string;
 }) {
   const ip = await getClientIp();
   const { allowed } = rateLimit('signup', ip);
@@ -108,7 +110,10 @@ export async function submitRegistrationRequest(input: {
 
     // 3. Auto-approve Buyer accounts instantly on creation (no admin approval needed)
     if (parsed.role === 'buyer') {
-      const passwordToSet = 'Buyer' + Math.floor(100000 + Math.random() * 900000) + '!';
+      if (!parsed.password || parsed.password.trim().length < 6) {
+        return { success: false, error: 'Password is required and must be at least 6 characters long.' };
+      }
+      const passwordToSet = parsed.password.trim();
       let authUserId: string | null = null;
 
       const { data: authData, error: signUpError } = await supabase.auth.admin.createUser({
@@ -156,7 +161,6 @@ export async function submitRegistrationRequest(input: {
         success: true,
         autoApproved: true,
         email,
-        password: passwordToSet,
       };
     }
 

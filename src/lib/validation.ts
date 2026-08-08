@@ -95,6 +95,7 @@ export const RegistrationRequestSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(['buyer', 'seller'], { message: 'Please select a role' }),
   message: z.string().max(1000).optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
 });
 
 export const BlogCreateSchema = z.object({

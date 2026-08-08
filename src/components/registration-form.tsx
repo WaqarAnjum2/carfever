@@ -19,6 +19,9 @@ import {
   Users,
   Building2,
   ShoppingCart,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { submitRegistrationRequest } from '@/lib/registration-actions';
@@ -32,21 +35,68 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role] = useState<'buyer' | 'seller'>(initialRole);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [autoApprovedInfo, setAutoApprovedInfo] = useState<{ email: string; password?: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    phone?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+  const [autoApprovedInfo, setAutoApprovedInfo] = useState<{ email: string } | null>(null);
 
   const isSeller = role === 'seller';
+
+  const validateForm = () => {
+    const errors: typeof fieldErrors = {};
+
+    if (!name.trim()) {
+      errors.name = 'Full name is required';
+    } else if (name.trim().length < 2) {
+      errors.name = 'Full name must be at least 2 characters';
+    }
+
+    if (!email.trim()) {
+      errors.email = 'Email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (phone.trim() && phone.trim().length < 7) {
+      errors.phone = 'Please enter a valid phone number (min 7 digits)';
+    }
+
+    if (!isSeller) {
+      if (!password) {
+        errors.password = 'Password is required';
+      } else if (password.length < 6) {
+        errors.password = 'Password must be at least 6 characters long';
+      }
+
+      if (password !== confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!name.trim()) { setError('Full name is required'); return; }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Valid email address is required'); return; }
+    if (!validateForm()) {
+      return;
+    }
 
     setLoading(true);
 
@@ -57,11 +107,12 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
         phone: phone.trim() || undefined,
         role,
         message: message.trim() || undefined,
+        password: !isSeller ? password : undefined,
       });
 
       if (result.success) {
-        if (result.autoApproved && result.password) {
-          setAutoApprovedInfo({ email: result.email || email, password: result.password });
+        if (result.autoApproved) {
+          setAutoApprovedInfo({ email: result.email || email });
         }
         setSuccess(true);
       } else {
@@ -94,29 +145,31 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
           </h1>
           <p className="text-xs text-slate-600 leading-relaxed mb-4">
             {autoApprovedInfo ? (
-              <>Your <strong className="text-slate-900">Car Buyer</strong> account has been created and activated instantly. You can log in right now!</>
+              <>Your <strong className="text-slate-900">Car Buyer</strong> account has been created and activated instantly. You can log in right now with your chosen password!</>
             ) : (
               <>Your application for a <strong className="text-slate-900">Dealership / Seller</strong> account has been sent to our administrator for review.</>
             )}
           </p>
 
-          {autoApprovedInfo && autoApprovedInfo.password && (
+          {autoApprovedInfo && (
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 text-left space-y-2">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Your Account Credentials</p>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Your Account Details</p>
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-slate-500">Email:</span>
                 <span className="font-bold text-slate-900">{autoApprovedInfo.email}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-slate-500">Password:</span>
-                <span className="font-mono font-bold text-[#0055FE] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{autoApprovedInfo.password}</span>
+                <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1 text-[11px]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Set by you
+                </span>
               </div>
             </div>
           )}
 
           {!autoApprovedInfo && (
             <p className="text-[11px] text-slate-400 mb-6">
-              We review applications within 24 hours. Check your email for login credentials.
+              We review applications within 24 hours. Check your email for status updates.
             </p>
           )}
 
@@ -175,7 +228,6 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
             {isSeller ? (
               <>Become a Verified <br /><span className="text-blue-300">Dealer</span></>
             ) : (
-
               <>Create Your <br /><span className="text-blue-200">Car Buyer Account</span></>
             )}
           </h1>
@@ -310,42 +362,56 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3" noValidate>
             
             {/* Name */}
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                Full Name / Dealership Name
+                Full Name / Dealership Name <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <UserIcon className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={e => {
+                    setName(e.target.value);
+                    if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: undefined }));
+                  }}
                   placeholder={isSeller ? "e.g. Metro Motors / Ali Ahmed" : "e.g. Ali Ahmed"}
-                  required
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0055FE] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className={`w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 transition-all ${
+                    fieldErrors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/20' : 'border-slate-200 focus:border-[#0055FE] focus:ring-blue-500/10'
+                  }`}
                 />
               </div>
+              {fieldErrors.name && (
+                <p className="text-[10px] text-rose-600 font-medium mt-1">{fieldErrors.name}</p>
+              )}
             </div>
 
             {/* Email */}
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                Email Address
+                Email Address <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                 <input
                   type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                  }}
                   placeholder="you@example.com"
-                  required
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0055FE] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className={`w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 transition-all ${
+                    fieldErrors.email ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/20' : 'border-slate-200 focus:border-[#0055FE] focus:ring-blue-500/10'
+                  }`}
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="text-[10px] text-rose-600 font-medium mt-1">{fieldErrors.email}</p>
+              )}
             </div>
 
             {/* Phone */}
@@ -358,13 +424,89 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
                 <input
                   type="tel"
                   value={phone}
-                  onChange={e => setPhone(e.target.value)}
+                  onChange={e => {
+                    setPhone(e.target.value);
+                    if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }));
+                  }}
                   placeholder="e.g. 07911 123456"
-
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#0055FE] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className={`w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 transition-all ${
+                    fieldErrors.phone ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/20' : 'border-slate-200 focus:border-[#0055FE] focus:ring-blue-500/10'
+                  }`}
                 />
               </div>
+              {fieldErrors.phone && (
+                <p className="text-[10px] text-rose-600 font-medium mt-1">{fieldErrors.phone}</p>
+              )}
             </div>
+
+            {/* Password Fields for Buyers */}
+            {!isSeller && (
+              <>
+                {/* Password */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Password <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={e => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+                      }}
+                      placeholder="At least 6 characters"
+                      className={`w-full pl-10 pr-10 py-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 transition-all ${
+                        fieldErrors.password ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/20' : 'border-slate-200 focus:border-[#0055FE] focus:ring-blue-500/10'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none p-0.5"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && (
+                    <p className="text-[10px] text-rose-600 font-medium mt-1">{fieldErrors.password}</p>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Confirm Password <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={e => {
+                        setConfirmPassword(e.target.value);
+                        if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                      }}
+                      placeholder="Re-enter your password"
+                      className={`w-full pl-10 pr-10 py-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 transition-all ${
+                        fieldErrors.confirmPassword ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/20' : 'border-slate-200 focus:border-[#0055FE] focus:ring-blue-500/10'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none p-0.5"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.confirmPassword && (
+                    <p className="text-[10px] text-rose-600 font-medium mt-1">{fieldErrors.confirmPassword}</p>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Message */}
             <div>
@@ -422,3 +564,4 @@ export function RegistrationForm({ initialRole }: RegistrationFormProps) {
     </div>
   );
 }
+

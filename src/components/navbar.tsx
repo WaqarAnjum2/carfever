@@ -229,6 +229,13 @@ export function Navbar() {
       if (!authData.role) {
         errors.general = "Please select a role.";
       }
+      if (authData.role === "buyer") {
+        if (!authData.password) {
+          errors.password = "Password is required.";
+        } else if (authData.password.length < 6) {
+          errors.password = "Password must be at least 6 characters.";
+        }
+      }
     }
     if (!authData.email.trim()) {
       errors.email = "Email address is required.";
@@ -260,6 +267,7 @@ export function Navbar() {
           phone: "",
           role: authData.role,
           message: authData.message.trim() || undefined,
+          password: authData.password || undefined,
         });
 
         if (!result.success) {
